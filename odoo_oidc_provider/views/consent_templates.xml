@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="consent_page" name="OIDC Consent">
+        <t t-call="web.layout">
+            <div class="oe_structure">
+                <div class="container mt32 mb32">
+                    <h2>Authorize application</h2>
+                    <p>
+                        <strong t-esc="client.name"/> requests access with client_id
+                        <code t-esc="client.client_id"/>.
+                    </p>
+                    <t t-if="scopes">
+                        <p>Requested scopes:</p>
+                        <ul>
+                            <t t-foreach="scopes" t-as="scope">
+                                <li><t t-esc="scope.name"/> - <t t-esc="scope.description"/></li>
+                            </t>
+                        </ul>
+                    </t>
+                    <t t-else="">
+                        <p>No explicit scopes requested.</p>
+                    </t>
+                    <form t-att-action="request.httprequest.path" method="post">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                        <t t-foreach="params.items()" t-as="item">
+                            <input type="hidden" t-att-name="item[0]" t-att-value="item[1]"/>
+                        </t>
+                        <div class="mt16">
+                            <button type="submit" name="decision" value="approve" class="btn btn-primary">Approve</button>
+                            <button type="submit" name="decision" value="deny" class="btn btn-secondary">Deny</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </t>
+    </template>
+</odoo>

@@ -1,0 +1,157 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_auth_oidc_root" name="OIDC Provider" parent="base.menu_administration" sequence="50"/>
+    <menuitem id="menu_auth_oidc_config" name="Konfiguration" parent="menu_auth_oidc_root" sequence="10"/>
+    <menuitem id="menu_auth_oidc_security" name="Security" parent="menu_auth_oidc_root" sequence="20"/>
+
+    <record id="view_auth_oidc_client_tree" model="ir.ui.view">
+        <field name="name">auth.oidc.client.tree</field>
+        <field name="model">auth_oidc.client</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="client_id"/>
+                <field name="is_confidential"/>
+                <field name="active"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_auth_oidc_client_form" model="ir.ui.view">
+        <field name="name">auth.oidc.client.form</field>
+        <field name="model">auth_oidc.client</field>
+        <field name="arch" type="xml">
+            <form string="OIDC Client">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="client_id"/>
+                        <field name="client_secret" password="True" groups="base.group_system"/>
+                        <button name="action_generate_secret" type="object" string="Generate Secret" class="btn-secondary" groups="base.group_system"/>
+                        <field name="is_confidential"/>
+                        <field name="active"/>
+                    </group>
+                    <group>
+                        <field name="redirect_uris" widget="text" placeholder="https://app.example.com/callback"/>
+                        <field name="allowed_scopes" widget="many2many_tags"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_auth_oidc_key_tree" model="ir.ui.view">
+        <field name="name">auth.oidc.key.tree</field>
+        <field name="model">auth_oidc.key</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="kid"/>
+                <field name="alg"/>
+                <field name="kty"/>
+                <field name="active"/>
+                <field name="expires_at"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_auth_oidc_key_form" model="ir.ui.view">
+        <field name="name">auth.oidc.key.form</field>
+        <field name="model">auth_oidc.key</field>
+        <field name="arch" type="xml">
+            <form string="OIDC Key">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="kid"/>
+                        <field name="alg"/>
+                        <field name="kty"/>
+                        <field name="use"/>
+                        <field name="active"/>
+                        <field name="expires_at"/>
+                    </group>
+                    <notebook>
+                        <page string="Key Data">
+                            <field name="private_key_pem" widget="text" groups="base.group_system"/>
+                            <field name="public_jwk" widget="text"/>
+                            <button name="action_generate_hs_key" type="object" string="Generate HS Key" class="btn-secondary" groups="base.group_system"/>
+                            <label string="For RSA, paste PEM + Public JWK manually (TODO: add server-side RSA generator)."/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_auth_oidc_scope_tree" model="ir.ui.view">
+        <field name="name">auth.oidc.scope.tree</field>
+        <field name="model">auth_oidc.scope</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="description"/>
+                <field name="active"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_auth_oidc_scope_form" model="ir.ui.view">
+        <field name="name">auth.oidc.scope.form</field>
+        <field name="model">auth_oidc.scope</field>
+        <field name="arch" type="xml">
+            <form string="OIDC Scope">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="description"/>
+                        <field name="active"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_auth_oidc_event_tree" model="ir.ui.view">
+        <field name="name">auth.oidc.event.tree</field>
+        <field name="model">auth_oidc.event</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="create_date"/>
+                <field name="event_type"/>
+                <field name="client_id"/>
+                <field name="user_id"/>
+                <field name="ip_address"/>
+                <field name="user_agent"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_auth_oidc_clients" model="ir.actions.act_window">
+        <field name="name">OIDC Clients</field>
+        <field name="res_model">auth_oidc.client</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="action_auth_oidc_keys" model="ir.actions.act_window">
+        <field name="name">OIDC Keys</field>
+        <field name="res_model">auth_oidc.key</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="action_auth_oidc_scopes" model="ir.actions.act_window">
+        <field name="name">OIDC Scopes</field>
+        <field name="res_model">auth_oidc.scope</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="action_auth_oidc_events" model="ir.actions.act_window">
+        <field name="name">OIDC Events</field>
+        <field name="res_model">auth_oidc.event</field>
+        <field name="view_mode">tree</field>
+    </record>
+
+    <menuitem id="menu_auth_oidc_clients" name="Clients" parent="menu_auth_oidc_config" action="action_auth_oidc_clients"/>
+    <menuitem id="menu_auth_oidc_keys" name="Keys" parent="menu_auth_oidc_config" action="action_auth_oidc_keys" groups="base.group_system"/>
+    <menuitem id="menu_auth_oidc_scopes" name="Scopes" parent="menu_auth_oidc_config" action="action_auth_oidc_scopes"/>
+    <menuitem id="menu_auth_oidc_events" name="Events" parent="menu_auth_oidc_security" action="action_auth_oidc_events" groups="base.group_system"/>
+</odoo>

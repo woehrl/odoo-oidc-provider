@@ -1,0 +1,60 @@
+﻿msgid ""
+msgstr ""
+"Project-Id-Version: odoo_oidc_provider\n"
+"Language: fr\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "OIDC Provider"
+msgstr "Fournisseur OIDC"
+
+msgid "Configuration"
+msgstr "Configuration"
+
+msgid "Security"
+msgstr "Sécurité"
+
+msgid "Clients"
+msgstr "Clients"
+
+msgid "Keys"
+msgstr "Clés"
+
+msgid "Scopes"
+msgstr "Scopes"
+
+msgid "Events"
+msgstr "Événements"
+
+msgid "OIDC Client"
+msgstr "Client OIDC"
+
+msgid "OIDC Key"
+msgstr "Clé OIDC"
+
+msgid "OIDC Scope"
+msgstr "Scope OIDC"
+
+msgid "Authorize application"
+msgstr "Autoriser l'application"
+
+msgid "Requested scopes:"
+msgstr "Scopes demandés :"
+
+msgid "No explicit scopes requested."
+msgstr "Aucun scope demandé."
+
+msgid "Approve"
+msgstr "Approuver"
+
+msgid "Deny"
+msgstr "Refuser"
+
+msgid "Generate Secret"
+msgstr "Générer un secret"
+
+msgid "Generate HS Key"
+msgstr "Générer une clé HS"
+
+msgid "For RSA, paste PEM + Public JWK manually (TODO: add server-side RSA generator)."
+msgstr "Pour RSA, collez PEM + JWK public manuellement (TODO : générateur RSA côté serveur)."
