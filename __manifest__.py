@@ -1,4 +1,4 @@
-﻿{
+{
     "name": "Odoo OIDC Provider",
     "summary": "Use Odoo as an OAuth2 / OpenID Connect Identity Provider",
     "version": "18.0.1.0.0",
@@ -16,4 +16,3 @@
     "installable": true,
     "application": false
 }
-
