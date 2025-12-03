@@ -1,4 +1,4 @@
-﻿msgid ""
+msgid ""
 msgstr ""
 "Project-Id-Version: odoo_oidc_provider\n"
 "Language: es\n"

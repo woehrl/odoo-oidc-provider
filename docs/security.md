@@ -1,4 +1,4 @@
-﻿# Security & Best Practices (Skeleton)
+# Security & Best Practices (Skeleton)
 
 - **PKCE**: Enforced for public clients; recommended for confidential clients too. Use `S256` code challenges (configurable via `odoo_oidc.pkce_require_s256`, default True).
 - **Redirect URIs**: Exact-match validation. Avoid wildcards; prefer HTTPS only.

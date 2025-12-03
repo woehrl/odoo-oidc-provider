@@ -1,4 +1,4 @@
-﻿# OIDC Provider Architecture (Skeleton)
+# OIDC Provider Architecture (Skeleton)
 
 ## Components
 - **Controllers** (`odoo_oidc_provider/controllers/main.py`): Implements discovery, authorize, token, userinfo, JWKS, introspection, revocation; enforces HTTPS (configurable) and PKCE S256 (configurable).
