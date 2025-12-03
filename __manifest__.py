@@ -10,7 +10,8 @@
         "security/ir.model.access.csv",
         "data/oauth_scopes.xml",
         "views/consent_templates.xml",
-        "data/cron.xml",\n        "views/oidc_views.xml"
+        "data/cron.xml",
+        "views/oidc_views.xml"
     ],
     "installable": true,
     "application": false
