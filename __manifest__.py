@@ -13,6 +13,6 @@
         "data/cron.xml",
         "views/oidc_views.xml"
     ],
-    "installable": true,
-    "application": false
+    "installable": True,
+    "application": False
 }
