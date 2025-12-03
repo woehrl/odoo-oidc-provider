@@ -89,3 +89,5 @@ const userinfo = await client.userinfo(tokenSet.access_token as string);
 ## Documentation
 - Architecture: `docs/architecture.md`
 - Security / Best Practices: `docs/security.md`
+
+[![Donate](https://img.shields.io/badge/Donate-PayPal-blue.svg)](https://www.paypal.me/FWoehrl)
