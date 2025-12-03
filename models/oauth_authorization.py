@@ -47,13 +47,14 @@ class OAuthKey(models.Model):
         ("auth_oidc_kid_unique", "unique(kid)", "Key ID must be unique."),
     ]
 
-    @api.model
-    def create(self, vals):
-        if not vals.get("kid"):
-            vals["kid"] = secrets.token_hex(8)
-        record = super().create(vals)
-        record._sync_public_jwk()
-        return record
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if not vals.get("kid"):
+                vals["kid"] = secrets.token_hex(8)
+        records = super().create(vals_list)
+        records._sync_public_jwk()
+        return records
 
     def write(self, vals):
         res = super().write(vals)

@@ -29,11 +29,12 @@ class OAuthClient(models.Model):
         ("client_id_unique", "unique(client_id)", "Client ID must be unique."),
     ]
 
-    @api.model
-    def create(self, vals):
-        if not vals.get("client_secret"):
-            vals["client_secret"] = secrets.token_urlsafe(32)
-        return super().create(vals)
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if not vals.get("client_secret"):
+                vals["client_secret"] = secrets.token_urlsafe(32)
+        return super().create(vals_list)
 
     @api.model
     def get_by_client_id(self, client_id):

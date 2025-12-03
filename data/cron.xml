@@ -7,7 +7,6 @@
         <field name="code">model.cron_cleanup_expired()</field>
         <field name="interval_number">30</field>
         <field name="interval_type">minutes</field>
-        <field name="numbercall">-1</field>
         <field name="active" eval="True"/>
     </record>
     <record id="ir_cron_oidc_cleanup_codes" model="ir.cron">
@@ -17,7 +16,6 @@
         <field name="code">model.cron_cleanup_expired()</field>
         <field name="interval_number">30</field>
         <field name="interval_type">minutes</field>
-        <field name="numbercall">-1</field>
         <field name="active" eval="True"/>
     </record>
 </odoo>
