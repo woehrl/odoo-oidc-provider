@@ -84,9 +84,12 @@ Assume the app runs at ``https://example-app.test`` and uses the redirect URI
 
    Fetching userinfo::
 
-      const userinfo = await client.userinfo(tokenSet.access_token as string);
+   ```ts
+   const userinfo = await client.userinfo(tokenSet.access_token as string);
+   ```
 
-3) If React app runs without ``openid-client``:
-   - Redirect the user to ``/oauth/authorize?...&code_challenge=<S256>&code_challenge_method=S256``.
-   - In the callback, POST the ``code`` to ``/oauth/token`` with ``grant_type=authorization_code``, ``code_verifier``, ``redirect_uri``.
-   - Use the access token for ``/oauth/userinfo``.
+3. If React app runs without `openid-client`:
+   - Step 1: Redirect the user to `/oauth/authorize?...&code_challenge=<S256>&code_challenge_method=S256`.
+   - Step 2: In the callback, POST the `code` to `/oauth/token` with `grant_type=authorization_code`, `code_verifier`, `redirect_uri`.
+   - Step 3: Use the access token for `/oauth/userinfo`.
+   
