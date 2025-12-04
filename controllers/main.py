@@ -238,7 +238,8 @@ class OidcController(http.Controller):
                 parsed.fragment,
             )
         )
-        return request.redirect(redirect_url)
+        # Allow external redirects to the registered callback (disable local-only guard)
+        return request.redirect(redirect_url, local=False)
 
     def _authenticate_client(self, params):
         auth_header = request.httprequest.headers.get("Authorization", "")
