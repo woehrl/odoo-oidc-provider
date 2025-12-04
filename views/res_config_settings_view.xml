@@ -3,43 +3,60 @@
     <record id="view_oidc_res_config_settings" model="ir.ui.view">
         <field name="name">res.config.settings.view.form.oidc</field>
         <field name="model">res.config.settings</field>
-        <field name="inherit_id" eval="False"/>
+        <field name="inherit_id" ref="base_setup.res_config_settings_view_form"/>
         <field name="arch" type="xml">
-            <form string="OIDC Settings">
-                <header>
-                    <button name="execute" string="Save" type="object" class="btn-primary oe_highlight"/>
-                    <button string="Discard" special="cancel" class="btn-secondary"/>
-                </header>
-                <sheet>
-                    <group string="OIDC Provider Settings" colspan="4">
-                        <group col="2">
-                            <field name="oidc_require_https" widget="boolean_toggle"/>
-                            <label for="oidc_require_https"/>
-                            <div class="text-muted">Require HTTPS for all OpenID Connect endpoints (recommended).</div>
-                        </group>
-                        <group col="2">
-                            <field name="oidc_require_pkce_public" widget="boolean_toggle"/>
-                            <label for="oidc_require_pkce_public"/>
-                            <div class="text-muted">Enforce PKCE (RFC 7636) for public (non-confidential) clients.</div>
-                        </group>
-                        <group col="2">
-                            <field name="oidc_pkce_require_s256" widget="boolean_toggle"/>
-                            <label for="oidc_pkce_require_s256"/>
-                            <div class="text-muted">Require PKCE S256 (disallow plain code_challenge_method).</div>
-                        </group>
-                        <group col="2">
-                            <field name="oidc_require_nonce" widget="boolean_toggle"/>
-                            <label for="oidc_require_nonce"/>
-                            <div class="text-muted">Require nonce on OpenID Connect authorization requests (OIDC Core 3.1.2.1).</div>
-                        </group>
-                        <group col="2">
-                            <field name="oidc_allow_external_redirects" widget="boolean_toggle"/>
-                            <label for="oidc_allow_external_redirects"/>
-                            <div class="text-muted">Allow redirects to registered external redirect_uris (OIDC Core 3.1.2.5).</div>
-                        </group>
-                    </group>
-                </sheet>
-            </form>
+            <xpath expr="//div[contains(@class,'o_settings_container')]" position="inside">
+                <div class="app_settings_block" string="OIDC Provider">
+                    <h2>OIDC Provider Settings</h2>
+                    <div class="row mt16 o_settings_container">
+                        <div class="col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_left">
+                                <field name="oidc_require_https" widget="boolean_toggle"/>
+                            </div>
+                            <div class="o_setting_right">
+                                <label for="oidc_require_https"/>
+                                <div class="text-muted">Require HTTPS for all OpenID Connect endpoints (recommended).</div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_left">
+                                <field name="oidc_require_pkce_public" widget="boolean_toggle"/>
+                            </div>
+                            <div class="o_setting_right">
+                                <label for="oidc_require_pkce_public"/>
+                                <div class="text-muted">Enforce PKCE (RFC 7636) for public (non-confidential) clients.</div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_left">
+                                <field name="oidc_pkce_require_s256" widget="boolean_toggle"/>
+                            </div>
+                            <div class="o_setting_right">
+                                <label for="oidc_pkce_require_s256"/>
+                                <div class="text-muted">Require PKCE S256 (disallow plain code_challenge_method).</div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_left">
+                                <field name="oidc_require_nonce" widget="boolean_toggle"/>
+                            </div>
+                            <div class="o_setting_right">
+                                <label for="oidc_require_nonce"/>
+                                <div class="text-muted">Require nonce on OpenID Connect authorization requests (OIDC Core 3.1.2.1).</div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_left">
+                                <field name="oidc_allow_external_redirects" widget="boolean_toggle"/>
+                            </div>
+                            <div class="o_setting_right">
+                                <label for="oidc_allow_external_redirects"/>
+                                <div class="text-muted">Allow redirects to registered external redirect_uris (OIDC Core 3.1.2.5).</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </xpath>
         </field>
     </record>
 
