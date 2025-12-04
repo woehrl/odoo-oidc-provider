@@ -12,7 +12,7 @@ Installation
 - Restart Odoo and update the apps list.
 - Install the **Odoo OIDC Provider** module.
 
-odoo.sh notes
+oodoo.sh notes
 -------------
 
 - Add this repo as a custom addon in odoo.sh and enable ``requirements.txt`` (PyJWT).
@@ -24,7 +24,7 @@ Configuration (post-install)
 1. Create a signing key at **Settings > Technical > Auth OIDC Keys**:
 
    - Use the built-in buttons to generate RSA (recommended) or HS keys; the public JWK is filled automatically.
-   - Distribute only the public key; keep the private key in Odoo (System group).
+   - Distribute only the public key/JWK; keep the private key in Odoo (System group).
 
 2. Review/extend scopes under **Auth OIDC Scopes** (openid/profile/email are seeded).
 
@@ -39,6 +39,12 @@ Configuration (post-install)
    - ``odoo_oidc.pkce_require_s256`` (default True): forbid PKCE ``plain``.
 
 5. Cron jobs: expired tokens and codes are cleaned up every 30 minutes (see ``data/cron.xml``).
+
+Admin Dashboard
+---------------
+
+- Navigate to **Settings > OIDC Provider > Dashboard** for a quick overview (counts for clients/keys/scopes/events) and a link to the GitHub project page.
+- The dashboard lists the first steps to configure keys, scopes, and clients.
 
 Endpoints
 ---------
@@ -59,7 +65,7 @@ Assume the app runs at ``https://example-app.test`` and uses the redirect URI
 
 #. Create an OIDC client in Odoo:
 
-   - ``client_id``: ``pd-web``
+   - ``client_id``: ``example-web``
    - ``client_secret``: leave empty for a public client with PKCE
    - Redirect URI: ``https://example-app.test/auth/callback``
    - Allowed Scopes: ``openid``, ``profile``, ``email``
@@ -68,7 +74,7 @@ Assume the app runs at ``https://example-app.test`` and uses the redirect URI
 
       const issuer = await Issuer.discover('https://<your-odoo-host>/.well-known/openid-configuration');
       const client = new issuer.Client({
-        client_id: 'pd-web',
+        client_id: 'example-web',
         token_endpoint_auth_method: 'none',
       });
       const codeVerifier = generators.codeVerifier();
@@ -99,10 +105,3 @@ Fetching userinfo: ::
    - Step 1: Redirect the user to ``/oauth/authorize?...&code_challenge=<S256>&code_challenge_method=S256``.
    - Step 2: In the callback, POST the ``code`` to ``/oauth/token`` with ``grant_type=authorization_code``, ``code_verifier``, ``redirect_uri``.
    - Step 3: Use the access token for ``/oauth/userinfo``.
-
-Admin Dashboard
----------------
-
-- Navigate to **Settings > OIDC Provider > Dashboard** for a quick overview (counts for clients/keys/scopes/events) and a link to the GitHub project page.
-- The dashboard lists the first steps to configure keys, scopes, and clients.
-
