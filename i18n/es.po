@@ -1,77 +1,151 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: odoo_oidc_provider\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-12-04 00:00+0000\n"
+"PO-Revision-Date: 2025-12-04 00:00+0000\n"
 "Language: es\n"
+"MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
+#: views/oidc_views.xml
 msgid "OIDC Provider"
 msgstr "Proveedor OIDC"
 
-msgid "Configuration"
-msgstr "Configuración"
-
-msgid "Security"
-msgstr "Seguridad"
-
-msgid "Clients"
-msgstr "Clientes"
-
-msgid "Keys"
-msgstr "Claves"
-
-msgid "Scopes"
-msgstr "Scopes"
-
-msgid "Events"
-msgstr "Eventos"
-
-msgid "OIDC Client"
-msgstr "Cliente OIDC"
-
-msgid "OIDC Key"
-msgstr "Clave OIDC"
-
-msgid "OIDC Scope"
-msgstr "Scope OIDC"
-
-msgid "Authorize application"
-msgstr "Autorizar aplicación"
-
-msgid "Requested scopes:"
-msgstr "Scopes solicitados:"
-
-msgid "No explicit scopes requested."
-msgstr "Ningún scope solicitado."
-
-msgid "Approve"
-msgstr "Aprobar"
-
-msgid "Deny"
-msgstr "Rechazar"
-
-msgid "Generate Secret"
-msgstr "Generar secreto"
-
-msgid "Generate HS Key"
-msgstr "Generar clave HS"
-
-msgid "For RSA, paste PEM + Public JWK manually (TODO: add server-side RSA generator)."
-msgstr "Para RSA, pega PEM + JWK público manualmente (TODO: generador RSA en servidor)."
-msgid "Dashboard"
-msgstr "Panel"
-
+#: views/oidc_views.xml
 msgid "OIDC Dashboard"
 msgstr "Panel OIDC"
 
-msgid "Projekt-Repo"
-msgstr "Repositorio del proyecto"
+#: views/oidc_views.xml
+msgid "Dashboard"
+msgstr "Panel"
 
-msgid "Aktualisieren"
+#: views/oidc_views.xml
+msgid "Configuration"
+msgstr "Configuración"
+
+#: views/res_config_settings_view.xml
+msgid "Settings"
+msgstr "Ajustes"
+
+#: views/oidc_views.xml
+msgid "Security"
+msgstr "Seguridad"
+
+#: views/oidc_views.xml
+msgid "Clients"
+msgstr "Clientes"
+
+#: views/oidc_views.xml
+msgid "Keys"
+msgstr "Claves"
+
+#: views/oidc_views.xml
+msgid "Scopes"
+msgstr "Ámbitos"
+
+#: views/oidc_views.xml
+msgid "Events"
+msgstr "Eventos"
+
+#: views/oidc_views.xml
+msgid "Project Repo"
+msgstr "Repo del proyecto"
+
+#: views/oidc_views.xml
+msgid "Refresh"
 msgstr "Actualizar"
 
-msgid "Generate RSA Keypair"
-msgstr "Generar par RSA"
+#: views/oidc_views.xml
+msgid "Overview"
+msgstr "Resumen"
 
-msgid "RSA keypair can be generated here; share only the Public JWK with clients."
-msgstr "Genera el par RSA aquí; comparte solo el JWK público con los clientes."
+#: views/oidc_views.xml
+msgid "Scheduler"
+msgstr "Programador"
+
+#: views/oidc_views.xml
+msgid "Getting Started"
+msgstr "Primeros pasos"
+
+#: views/oidc_views.xml
+msgid "Clients"
+msgstr "Clientes"
+
+#: views/oidc_views.xml
+msgid "Keys"
+msgstr "Claves"
+
+#: views/oidc_views.xml
+msgid "Scopes"
+msgstr "Ámbitos"
+
+#: views/oidc_views.xml
+msgid "Events"
+msgstr "Eventos"
+
+#: views/oidc_views.xml
+msgid "Cron Tokens Active"
+msgstr "Cron de tokens activo"
+
+#: views/oidc_views.xml
+msgid "Tokens Next"
+msgstr "Próximo tokens"
+
+#: views/oidc_views.xml
+msgid "Cron Codes Active"
+msgstr "Cron de códigos activo"
+
+#: views/oidc_views.xml
+msgid "Codes Next"
+msgstr "Próximo códigos"
+
+#: views/oidc_views.xml
+msgid "Create signing keys (RSA recommended) or generate HS keys."
+msgstr "Crear claves de firma (RSA recomendado) o generar claves HS."
+
+#: views/oidc_views.xml
+msgid "Check scopes (openid/profile/email) and extend if needed."
+msgstr "Revisar ámbitos (openid/profile/email) y ampliar si es necesario."
+
+#: views/oidc_views.xml
+msgid "Create clients (exact redirect URIs, PKCE for public clients)."
+msgstr "Crear clientes (URIs de redirección exactas, PKCE para clientes públicos)."
+
+#: views/oidc_views.xml
+msgid "Test discovery, JWKS, authorize, token, userinfo endpoints."
+msgstr "Probar endpoints discovery, JWKS, authorize, token y userinfo."
+
+#: views/oidc_views.xml
+msgid "GitHub project page"
+msgstr "Página del proyecto en GitHub"
+
+#: views/res_config_settings_view.xml
+msgid "OIDC Settings"
+msgstr "Ajustes OIDC"
+
+#: views/res_config_settings_view.xml
+msgid "OIDC Provider Settings"
+msgstr "Ajustes del proveedor OIDC"
+
+#: models/config_settings.py
+msgid "Require HTTPS for OIDC endpoints"
+msgstr "Requerir HTTPS para endpoints OIDC"
+
+#: models/config_settings.py
+msgid "Require PKCE for public clients"
+msgstr "Requerir PKCE para clientes públicos"
+
+#: models/config_settings.py
+msgid "Require PKCE S256"
+msgstr "Requerir PKCE S256"
+
+#: models/config_settings.py
+msgid "Require nonce for OIDC"
+msgstr "Requerir nonce para OIDC"
+
+#: models/config_settings.py
+msgid "Allow external redirect URIs"
+msgstr "Permitir URIs de redirección externas"

@@ -32,6 +32,6 @@
     </record>
 
     <menuitem id="menu_oidc_config_settings" name="Settings"
-              parent="menu_auth_oidc_root" action="action_oidc_settings"
-              groups="base.group_system" sequence="15"/>
+              parent="menu_auth_oidc_config" action="action_oidc_settings"
+              groups="base.group_system" sequence="5"/>
 </odoo>
