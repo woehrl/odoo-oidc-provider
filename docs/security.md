@@ -1,7 +1,8 @@
 # Security & Best Practices (Skeleton)
 
 - **PKCE**: Enforced for public clients; recommended for confidential clients too. Use `S256` code challenges (configurable via `odoo_oidc.pkce_require_s256`, default True).
-- **Redirect URIs**: Exact-match validation. Avoid wildcards; prefer HTTPS only.
+- **Nonce**: Required on OIDC (`openid`) authorization requests; prevents replay of authorization responses (OIDC Core 3.1.2.1).
+- **Redirect URIs**: Exact-match validation. Avoid wildcards; prefer HTTPS only. External redirects are allowed explicitly (`local=False`) to avoid host rewriting; still validated against the registered list.
 - **Client auth**: Confidential clients must present client_secret (or migrate to mTLS/private_key_jwt). Public clients cannot send secrets.
 - **Scopes**: Limit scopes per client via `allowed_scopes`; authorization endpoint filters requested scopes to the allowed set.
 - **Consent**: Stored in `auth_oidc.consent`; prompt is forced if missing, outdated, or `prompt=consent` is passed. Consent POST uses Odoo CSRF token; keep the route csrf-enabled.

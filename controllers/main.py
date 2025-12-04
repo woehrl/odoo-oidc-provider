@@ -171,6 +171,7 @@ class OidcController(http.Controller):
 
         requested_scopes = self._required_scopes(client, scope)
         scope_str = " ".join(requested_scopes)
+        # OIDC Core 3.1.2.1: nonce is required when requesting the openid scope
         if "openid" in requested_scopes and not nonce:
             return _json_response(
                 {"error": "invalid_request", "error_description": "nonce required for OpenID requests"},
@@ -243,7 +244,7 @@ class OidcController(http.Controller):
                 parsed.fragment,
             )
         )
-        # Allow external redirects to the registered callback (disable local-only guard)
+        # Allow external redirects to the registered callback (disable local-only guard) per OIDC Core 3.1.2.5
         return request.redirect(redirect_url, local=False)
 
     def _authenticate_client(self, params):
