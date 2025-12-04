@@ -61,3 +61,13 @@ class ResConfigSettings(models.TransientModel):
             == "True",
         )
         return res
+
+    def set_values(self):
+        super().set_values()
+        params = self.env["ir.config_parameter"].sudo()
+        for rec in self:
+            params.set_param("odoo_oidc.require_https", bool(rec.oidc_require_https))
+            params.set_param("odoo_oidc.require_pkce_public", bool(rec.oidc_require_pkce_public))
+            params.set_param("odoo_oidc.pkce_require_s256", bool(rec.oidc_pkce_require_s256))
+            params.set_param("odoo_oidc.require_nonce", bool(rec.oidc_require_nonce))
+            params.set_param("odoo_oidc.allow_external_redirects", bool(rec.oidc_allow_external_redirects))
