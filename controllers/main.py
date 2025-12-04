@@ -171,6 +171,11 @@ class OidcController(http.Controller):
 
         requested_scopes = self._required_scopes(client, scope)
         scope_str = " ".join(requested_scopes)
+        if "openid" in requested_scopes and not nonce:
+            return _json_response(
+                {"error": "invalid_request", "error_description": "nonce required for OpenID requests"},
+                status=400,
+            )
 
         if not client.is_confidential and not code_challenge:
             return _json_response({"error": "invalid_request", "error_description": "PKCE required for public clients"}, status=400)
