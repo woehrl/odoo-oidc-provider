@@ -8,7 +8,7 @@
             <form string="OIDC Settings">
                 <header>
                     <button name="execute" string="Save" type="object" class="btn-primary oe_highlight"/>
-                    <button name="reset" string="Discard" type="object" class="btn-secondary"/>
+                    <button string="Discard" special="cancel" class="btn-secondary"/>
                 </header>
                 <sheet>
                     <group string="OIDC Provider Settings" colspan="4">
