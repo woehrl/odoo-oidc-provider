@@ -2,10 +2,10 @@
     "name": "Odoo OIDC Provider",
     "summary": "Use Odoo as an OAuth2 / OpenID Connect Identity Provider",
     "version": "18.0.1.0.0",
-    "author": "GJS Kanalkamera / PipeDesk",
+    "author": "Florian Woehrl <fw@woehrl.biz>",
     "license": "LGPL-3",
     "category": "Authentication",
-    "depends": ["base", "web", "auth_signup"],
+    "depends": ["base", "base_setup", "web", "auth_signup"],
     "data": [
         "security/ir.model.access.csv",
         "data/oauth_scopes.xml",
