@@ -11,7 +11,8 @@
         "data/oauth_scopes.xml",
         "views/consent_templates.xml",
         "data/cron.xml",
-        "views/oidc_views.xml"
+        "views/oidc_views.xml",
+        "views/res_config_settings_view.xml"
     ],
     "installable": True,
     "application": False

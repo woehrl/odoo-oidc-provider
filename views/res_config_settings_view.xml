@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_oidc_res_config_settings" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.oidc</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.view_res_config_settings"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[hasclass('settings')]" position="inside">
+                <div class="app_settings_block" string="OIDC Provider">
+                    <h2>OIDC Provider Settings</h2>
+                    <div class="row mt16 o_settings_container">
+                        <div class="col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_left">
+                                <field name="oidc_require_https"/>
+                            </div>
+                            <div class="o_setting_right">
+                                <label for="oidc_require_https"/>
+                                <div class="text-muted">Require HTTPS for all OpenID Connect endpoints (recommended).</div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_left">
+                                <field name="oidc_require_pkce_public"/>
+                            </div>
+                            <div class="o_setting_right">
+                                <label for="oidc_require_pkce_public"/>
+                                <div class="text-muted">Enforce PKCE (RFC 7636) for public (non-confidential) clients.</div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_left">
+                                <field name="oidc_pkce_require_s256"/>
+                            </div>
+                            <div class="o_setting_right">
+                                <label for="oidc_pkce_require_s256"/>
+                                <div class="text-muted">Require PKCE S256 (disallow plain code_challenge_method).</div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_left">
+                                <field name="oidc_require_nonce"/>
+                            </div>
+                            <div class="o_setting_right">
+                                <label for="oidc_require_nonce"/>
+                                <div class="text-muted">Require nonce on OpenID Connect authorization requests (OIDC Core 3.1.2.1).</div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_left">
+                                <field name="oidc_allow_external_redirects"/>
+                            </div>
+                            <div class="o_setting_right">
+                                <label for="oidc_allow_external_redirects"/>
+                                <div class="text-muted">Allow redirects to registered external redirect_uris (OIDC Core 3.1.2.5).</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_oidc_settings" model="ir.actions.act_window">
+        <field name="name">OIDC Settings</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="target">inline</field>
+        <field name="context">{'module': 'odoo_oidc_provider'}</field>
+    </record>
+
+    <menuitem id="menu_oidc_config_settings" name="Settings"
+              parent="menu_auth_oidc_root" action="action_oidc_settings"
+              groups="base.group_system" sequence="15"/>
+</odoo>

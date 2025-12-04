@@ -73,7 +73,7 @@ msgid "Aktualisieren"
 msgstr "Aktualisieren"
 
 msgid "Generate RSA Keypair"
-msgstr "RSA-Schlüssel erzeugen"
+msgstr "RSA-SchlÃ¼ssel erzeugen"
 
 msgid "RSA keypair can be generated here; share only the Public JWK with clients."
-msgstr "RSA-Schlüssel hier erzeugen; nur den Public JWK an Clients weitergeben."
+msgstr "RSA-SchlÃ¼ssel hier erzeugen; nur den Public JWK an Clients weitergeben."

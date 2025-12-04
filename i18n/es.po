@@ -74,4 +74,4 @@ msgid "Generate RSA Keypair"
 msgstr "Generar par RSA"
 
 msgid "RSA keypair can be generated here; share only the Public JWK with clients."
-msgstr "Genera el par RSA aquí; comparte solo el JWK público con los clientes."
+msgstr "Genera el par RSA aquÃ­; comparte solo el JWK pÃºblico con los clientes."

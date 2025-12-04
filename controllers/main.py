@@ -171,14 +171,15 @@ class OidcController(http.Controller):
 
         requested_scopes = self._required_scopes(client, scope)
         scope_str = " ".join(requested_scopes)
-        # OIDC Core 3.1.2.1: nonce is required when requesting the openid scope
-        if "openid" in requested_scopes and not nonce:
+        # OIDC Core 3.1.2.1: nonce is required when requesting the openid scope (configurable)
+        if "openid" in requested_scopes and _bool_param("odoo_oidc.require_nonce", True) and not nonce:
             return _json_response(
                 {"error": "invalid_request", "error_description": "nonce required for OpenID requests"},
                 status=400,
             )
 
-        if not client.is_confidential and not code_challenge:
+        pkce_required = _bool_param("odoo_oidc.require_pkce_public", True)
+        if not client.is_confidential and pkce_required and not code_challenge:
             return _json_response({"error": "invalid_request", "error_description": "PKCE required for public clients"}, status=400)
 
         if code_challenge_method == "plain" and _bool_param("odoo_oidc.pkce_require_s256", True):
@@ -245,7 +246,8 @@ class OidcController(http.Controller):
             )
         )
         # Allow external redirects to the registered callback (disable local-only guard) per OIDC Core 3.1.2.5
-        return request.redirect(redirect_url, local=False)
+        local_guard = not _bool_param("odoo_oidc.allow_external_redirects", True)
+        return request.redirect(redirect_url, local=local_guard)
 
     def _authenticate_client(self, params):
         auth_header = request.httprequest.headers.get("Authorization", "")

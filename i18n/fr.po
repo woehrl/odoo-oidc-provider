@@ -65,13 +65,13 @@ msgid "OIDC Dashboard"
 msgstr "Tableau de bord OIDC"
 
 msgid "Projekt-Repo"
-msgstr "Dépôt du projet"
+msgstr "Dï¿½pï¿½t du projet"
 
 msgid "Aktualisieren"
 msgstr "Actualiser"
 
 msgid "Generate RSA Keypair"
-msgstr "Générer une paire RSA"
+msgstr "GÃ©nÃ©rer une paire RSA"
 
 msgid "RSA keypair can be generated here; share only the Public JWK with clients."
-msgstr "Générez la paire RSA ici ; partagez uniquement le JWK public avec les clients."
+msgstr "GÃ©nÃ©rez la paire RSA ici ; partagez uniquement le JWK public avec les clients."
