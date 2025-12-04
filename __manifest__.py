@@ -5,6 +5,7 @@
     "author": "Florian Woehrl <fw@woehrl.biz>",
     "license": "LGPL-3",
     "category": "Authentication",
+    "icon": "/odoo_oidc_provider/static/description/icon.png",
     "depends": ["base", "base_setup", "web", "auth_signup"],
     "data": [
         "security/ir.model.access.csv",
