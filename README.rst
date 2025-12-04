@@ -1,14 +1,14 @@
-Odoo OIDC Provider
+﻿Odoo OIDC Provider
 ==================
 
 Odoo module that turns Odoo into an OpenID Connect / OAuth2 Identity Provider.
-Target versions: Odoo 18/19 (Community and Enterprise). Status: **experimental**.
+Target versions: Odoo 18+ (Community and Enterprise). Status: **experimental**.
 
 Installation
 ------------
 
 - Place this repository in the Odoo ``addons_path`` (or pass via ``--addons-path``).
-- Install ``requirements.txt`` (PyJWT is needed for ID Tokens).
+- Install ``requirements.txt`` (PyJWT for ID Tokens, cryptography for RSA generation).
 - Restart Odoo and update the apps list.
 - Install the **Odoo OIDC Provider** module.
 
@@ -23,7 +23,7 @@ Configuration (post-install)
 
 1. Create a signing key at **Settings > Technical > Auth OIDC Keys**:
 
-   - Prefer RSA (RS256). Public JWK must be provided manually for RSA; HS (oct) auto-generates a public JWK.
+   - Use the built-in buttons to generate RSA (recommended) or HS keys; the public JWK is filled automatically.
    - Distribute only the public key; keep the private key in Odoo (System group).
 
 2. Review/extend scopes under **Auth OIDC Scopes** (openid/profile/email are seeded).
@@ -99,3 +99,10 @@ Fetching userinfo: ::
    - Step 1: Redirect the user to ``/oauth/authorize?...&code_challenge=<S256>&code_challenge_method=S256``.
    - Step 2: In the callback, POST the ``code`` to ``/oauth/token`` with ``grant_type=authorization_code``, ``code_verifier``, ``redirect_uri``.
    - Step 3: Use the access token for ``/oauth/userinfo``.
+
+Admin Dashboard
+---------------
+
+- Navigate to **Settings > OIDC Provider > Dashboard** for a quick overview (counts for clients/keys/scopes/events) and a link to the GitHub project page.
+- The dashboard lists the first steps to configure keys, scopes, and clients.
+

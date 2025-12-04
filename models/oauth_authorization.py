@@ -1,15 +1,20 @@
-import json
+﻿import json
 from datetime import datetime, timedelta
 import secrets
 import hashlib
 import base64
 
-from odoo import api, fields, models
+from odoo import api, fields, models, _
+from odoo.exceptions import UserError
 
 
 def _b64url_encode(raw_bytes):
-    """Return URL-safe base64 without padding."""
     return base64.urlsafe_b64encode(raw_bytes).rstrip(b"=").decode()
+
+
+def _b64url_int(value):
+    length = (value.bit_length() + 7) // 8
+    return _b64url_encode(value.to_bytes(length, byteorder="big"))
 
 
 class OAuthKey(models.Model):
@@ -64,7 +69,6 @@ class OAuthKey(models.Model):
 
     @api.model
     def get_active_signing_key(self):
-        """Return an active signing key, preferring non-expired keys."""
         domain = [("use", "=", "sig"), ("active", "=", True)]
         candidates = self.search(domain, order="expires_at asc, id desc")
         now = datetime.utcnow()
@@ -76,7 +80,7 @@ class OAuthKey(models.Model):
         return candidates[:1]
 
     def _sync_public_jwk(self):
-        """Fill in public_jwk for symmetric keys if empty (RSA must be provided)."""
+        """Fill in public_jwk from stored private key (HS auto, RSA if cryptography is installed)."""
         for key in self:
             if key.public_jwk or not key.private_key_pem:
                 continue
@@ -91,6 +95,30 @@ class OAuthKey(models.Model):
                     }
                 )
                 key.public_jwk = jwk_value
+            elif key.kty == "RSA":
+                try:
+                    from cryptography.hazmat.primitives import serialization
+                    from cryptography.hazmat.backends import default_backend
+                except Exception:
+                    continue
+                try:
+                    private_key = serialization.load_pem_private_key(
+                        key.private_key_pem.encode(), password=None, backend=default_backend()
+                    )
+                    numbers = private_key.public_key().public_numbers()
+                    jwk_value = json.dumps(
+                        {
+                            "kty": "RSA",
+                            "alg": key.alg,
+                            "use": key.use,
+                            "kid": key.kid,
+                            "n": _b64url_int(numbers.n),
+                            "e": _b64url_int(numbers.e),
+                        }
+                    )
+                    key.public_jwk = jwk_value
+                except Exception:
+                    continue
 
     def action_generate_hs_key(self):
         """Generate a symmetric HS256 key and public JWK."""
@@ -99,6 +127,45 @@ class OAuthKey(models.Model):
         self.kty = "oct"
         self.private_key_pem = secrets.token_urlsafe(64)
         self._sync_public_jwk()
+        return True
+
+    def action_generate_rsa_key(self):
+        """Generate an RSA key pair and fill public JWK."""
+        self.ensure_one()
+        try:
+            from cryptography.hazmat.primitives.asymmetric import rsa
+            from cryptography.hazmat.primitives import serialization
+        except Exception as exc:
+            raise UserError(
+                _("cryptography package is required for RSA generation: %s") % exc
+            )
+        private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+        pem = private_key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.PKCS8,
+            encryption_algorithm=serialization.NoEncryption(),
+        ).decode()
+        numbers = private_key.public_key().public_numbers()
+        jwk_value = json.dumps(
+            {
+                "kty": "RSA",
+                "alg": "RS256",
+                "use": "sig",
+                "kid": self.kid or secrets.token_hex(8),
+                "n": _b64url_int(numbers.n),
+                "e": _b64url_int(numbers.e),
+            }
+        )
+        vals = {
+            "alg": "RS256",
+            "kty": "RSA",
+            "use": "sig",
+            "private_key_pem": pem,
+            "public_jwk": jwk_value,
+        }
+        if not self.kid:
+            vals["kid"] = secrets.token_hex(8)
+        self.write(vals)
         return True
 
 

@@ -1,8 +1,49 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <menuitem id="menu_auth_oidc_root" name="OIDC Provider" parent="base.menu_administration" sequence="50"/>
+    <menuitem id="menu_auth_oidc_dashboard" name="Dashboard" parent="menu_auth_oidc_root" sequence="1" action="action_auth_oidc_dashboard"/>
     <menuitem id="menu_auth_oidc_config" name="Konfiguration" parent="menu_auth_oidc_root" sequence="10"/>
     <menuitem id="menu_auth_oidc_security" name="Security" parent="menu_auth_oidc_root" sequence="20"/>
+
+    <record id="view_auth_oidc_dashboard_form" model="ir.ui.view">
+        <field name="name">auth.oidc.dashboard.form</field>
+        <field name="model">auth_oidc.dashboard</field>
+        <field name="arch" type="xml">
+            <form string="OIDC Dashboard">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_docs" type="object" class="oe_stat_button" icon="fa-external-link">
+                            <div>Projekt-Repo</div>
+                        </button>
+                        <button name="action_refresh" type="object" class="oe_stat_button" icon="fa-refresh">
+                            <div>Aktualisieren</div>
+                        </button>
+                    </div>
+                    <group string="Überblick">
+                        <field name="client_count" readonly="1"/>
+                        <field name="key_count" readonly="1"/>
+                        <field name="scope_count" readonly="1"/>
+                        <field name="event_count" readonly="1"/>
+                    </group>
+                    <group string="Erste Schritte">
+                        <p>1. Signierschlüssel anlegen (RSA bevorzugt) oder HS-Key generieren.</p>
+                        <p>2. Scopes prüfen (openid/profile/email) und ggf. erweitern.</p>
+                        <p>3. Clients anlegen (Redirect URIs exakt, PKCE für Public Clients aktiv lassen).</p>
+                        <p>4. Testen mit Discovery/JWKS/Authorize/Token/Userinfo.</p>
+                        <p>Mehr Infos: <a t-att-href="docs_url" target="_blank">GitHub Projektseite</a></p>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_auth_oidc_dashboard" model="ir.actions.act_window">
+        <field name="name">OIDC Dashboard</field>
+        <field name="res_model">auth_oidc.dashboard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{"default_docs_url": "https://github.com/woehrl/odoo-oidc-provider"}</field>
+    </record>
 
     <record id="view_auth_oidc_client_tree" model="ir.ui.view">
         <field name="name">auth.oidc.client.tree</field>
@@ -72,10 +113,13 @@
                     </group>
                     <notebook>
                         <page string="Key Data">
+                            <group>
+                                <button name="action_generate_rsa_key" type="object" string="Generate RSA Keypair" class="btn-primary" groups="base.group_system"/>
+                                <button name="action_generate_hs_key" type="object" string="Generate HS Key" class="btn-secondary" groups="base.group_system"/>
+                            </group>
                             <field name="private_key_pem" widget="text" groups="base.group_system"/>
                             <field name="public_jwk" widget="text"/>
-                            <button name="action_generate_hs_key" type="object" string="Generate HS Key" class="btn-secondary" groups="base.group_system"/>
-                            <label for="private_key_pem" class="o_form_label" string="For RSA, paste PEM + Public JWK manually (TODO: add server-side RSA generator)."/>
+                            <label for="private_key_pem" class="o_form_label" string="RSA keypair can be generated here; share only the Public JWK with clients."/>
                         </page>
                     </notebook>
                 </sheet>

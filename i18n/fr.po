@@ -58,3 +58,20 @@ msgstr "G√©n√©rer une cl√© HS"
 
 msgid "For RSA, paste PEM + Public JWK manually (TODO: add server-side RSA generator)."
 msgstr "Pour RSA, collez PEM + JWK public manuellement (TODO : g√©n√©rateur RSA c√¥t√© serveur)."
+msgid "Dashboard"
+msgstr "Tableau de bord"
+
+msgid "OIDC Dashboard"
+msgstr "Tableau de bord OIDC"
+
+msgid "Projekt-Repo"
+msgstr "DÈpÙt du projet"
+
+msgid "Aktualisieren"
+msgstr "Actualiser"
+
+msgid "Generate RSA Keypair"
+msgstr "GÈnÈrer une paire RSA"
+
+msgid "RSA keypair can be generated here; share only the Public JWK with clients."
+msgstr "GÈnÈrez la paire RSA ici ; partagez uniquement le JWK public avec les clients."
