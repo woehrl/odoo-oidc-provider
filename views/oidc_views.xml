@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <menuitem id="menu_auth_oidc_root" name="OIDC Provider" parent="base.menu_administration" sequence="50"/>
 
@@ -33,6 +33,12 @@
                         <field name="key_count" readonly="1"/>
                         <field name="scope_count" readonly="1"/>
                         <field name="event_count" readonly="1"/>
+                    </group>
+                    <group string="Scheduler">
+                        <field name="cron_tokens_active" readonly="1"/>
+                        <field name="cron_tokens_next" readonly="1"/>
+                        <field name="cron_codes_active" readonly="1"/>
+                        <field name="cron_codes_next" readonly="1"/>
                     </group>
                     <group string="Getting started">
                         <p>1. Create signing keys (RSA recommended) or generate HS keys.</p>
