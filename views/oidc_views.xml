@@ -75,7 +75,7 @@
                             <field name="private_key_pem" widget="text" groups="base.group_system"/>
                             <field name="public_jwk" widget="text"/>
                             <button name="action_generate_hs_key" type="object" string="Generate HS Key" class="btn-secondary" groups="base.group_system"/>
-                            <label class="o_form_label" string="For RSA, paste PEM + Public JWK manually (TODO: add server-side RSA generator)."/>
+                            <label for="private_key_pem" class="o_form_label" string="For RSA, paste PEM + Public JWK manually (TODO: add server-side RSA generator)."/>
                         </page>
                     </notebook>
                 </sheet>
