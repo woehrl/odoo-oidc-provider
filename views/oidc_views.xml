@@ -28,36 +28,24 @@
                             <div>Refresh</div>
                         </button>
                     </div>
-                    <group string="Overview" colspan="4" col="4">
-                        <field name="client_count" readonly="1" widget="statinfo" string="Clients"/>
-                        <field name="key_count" readonly="1" widget="statinfo" string="Keys"/>
-                        <field name="scope_count" readonly="1" widget="statinfo" string="Scopes"/>
-                        <field name="event_count" readonly="1" widget="statinfo" string="Events"/>
+                    <group string="Overview">
+                        <field name="client_count" readonly="1"/>
+                        <field name="key_count" readonly="1"/>
+                        <field name="scope_count" readonly="1"/>
+                        <field name="event_count" readonly="1"/>
                     </group>
-                    <group string="Scheduler" colspan="4" col="4">
-                        <field name="cron_tokens_active" readonly="1" widget="boolean_toggle" string="Cron Tokens Active"/>
-                        <field name="cron_tokens_next" readonly="1" string="Tokens Next"/>
-                        <field name="cron_codes_active" readonly="1" widget="boolean_toggle" string="Cron Codes Active"/>
-                        <field name="cron_codes_next" readonly="1" string="Codes Next"/>
+                    <group string="Scheduler">
+                        <field name="cron_tokens_active" readonly="1"/>
+                        <field name="cron_tokens_next" readonly="1"/>
+                        <field name="cron_codes_active" readonly="1"/>
+                        <field name="cron_codes_next" readonly="1"/>
                     </group>
-                    <group string="Getting Started" colspan="4" col="2">
-                        <div class="o_row">
-                            <div class="col-6">
-                                <ol>
-                                    <li>Create signing keys (RSA recommended) or generate HS keys.</li>
-                                    <li>Check scopes (openid/profile/email) and extend if needed.</li>
-                                </ol>
-                            </div>
-                            <div class="col-6">
-                                <ol start="3">
-                                    <li>Create clients (exact redirect URIs, PKCE for public clients).</li>
-                                    <li>Test discovery, JWKS, authorize, token, userinfo endpoints.</li>
-                                </ol>
-                            </div>
-                        </div>
-                        <div class="mt8">
-                            <a href="https://github.com/woehrl/odoo-oidc-provider" target="_blank">GitHub project page</a>
-                        </div>
+                    <group string="Getting started">
+                        <p>1. Create signing keys (RSA recommended) or generate HS keys.</p>
+                        <p>2. Check scopes (openid/profile/email) and extend if needed.</p>
+                        <p>3. Create clients (exact redirect URIs, PKCE for public clients).</p>
+                        <p>4. Test discovery/JWKS/authorize/token/userinfo.</p>
+                        <p>More info: <a href="https://github.com/woehrl/odoo-oidc-provider" target="_blank">GitHub project page</a></p>
                     </group>
                 </sheet>
             </form>

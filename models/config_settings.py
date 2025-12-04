@@ -35,6 +35,10 @@ class ResConfigSettings(models.TransientModel):
         help="Allow redirects to registered external callback hosts (per OIDC Core 3.1.2.5). If disabled, redirects are restricted to the local host.",
     )
 
+    def name_get(self):
+        # Use a stable label in breadcrumbs instead of "New"
+        return [(rec.id, "OIDC Settings") for rec in self]
+
     @api.model
     def get_values(self):
         res = super().get_values()
