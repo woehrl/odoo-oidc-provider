@@ -38,36 +38,3 @@ class ResConfigSettings(models.TransientModel):
     def name_get(self):
         # Use a stable label in breadcrumbs instead of "New"
         return [(rec.id, "OIDC Settings") for rec in self]
-
-    @api.model
-    def get_values(self):
-        res = super().get_values()
-        params = self.env["ir.config_parameter"].sudo()
-        res.update(
-            oidc_require_https=params.get_param("odoo_oidc.require_https", "True") == "True",
-            oidc_require_pkce_public=params.get_param(
-                "odoo_oidc.require_pkce_public", "True"
-            )
-            == "True",
-            oidc_pkce_require_s256=params.get_param(
-                "odoo_oidc.pkce_require_s256", "True"
-            )
-            == "True",
-            oidc_require_nonce=params.get_param("odoo_oidc.require_nonce", "True")
-            == "True",
-            oidc_allow_external_redirects=params.get_param(
-                "odoo_oidc.allow_external_redirects", "True"
-            )
-            == "True",
-        )
-        return res
-
-    def set_values(self):
-        super().set_values()
-        params = self.env["ir.config_parameter"].sudo()
-        for rec in self:
-            params.set_param("odoo_oidc.require_https", bool(rec.oidc_require_https))
-            params.set_param("odoo_oidc.require_pkce_public", bool(rec.oidc_require_pkce_public))
-            params.set_param("odoo_oidc.pkce_require_s256", bool(rec.oidc_pkce_require_s256))
-            params.set_param("odoo_oidc.require_nonce", bool(rec.oidc_require_nonce))
-            params.set_param("odoo_oidc.allow_external_redirects", bool(rec.oidc_allow_external_redirects))
