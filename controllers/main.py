@@ -162,7 +162,10 @@ class OidcController(http.Controller):
         if not client:
             return _json_response({"error": "unauthorized_client"}, status=401)
 
-        redirect_target = redirect_uri or (client._parsed_redirect_uris() or [None])[0]
+        redirect_target = (redirect_uri or "").strip()
+        if not redirect_target:
+            redirects = client._parsed_redirect_uris()
+            redirect_target = redirects[0] if redirects else None
         if not redirect_target or not client.validate_redirect_uri(redirect_target):
             return _json_response({"error": "invalid_request"}, status=400)
 
@@ -319,7 +322,7 @@ class OidcController(http.Controller):
 
         if grant_type == "authorization_code":
             code_value = params.get("code")
-            redirect_uri = params.get("redirect_uri")
+            redirect_uri = (params.get("redirect_uri") or "").strip()
             code_verifier = params.get("code_verifier")
             auth_code = code_model.search([("code", "=", code_value)], limit=1)
 
