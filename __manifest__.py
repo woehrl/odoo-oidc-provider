@@ -16,5 +16,6 @@
         "views/res_config_settings_view.xml"
     ],
     "installable": True,
-    "application": False
+    "application": False,
+    "uninstall_hook": "uninstall_hook",
 }
