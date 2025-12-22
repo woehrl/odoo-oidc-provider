@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <!-- Extend the base settings form; inject under the main settings container (id="settings") as used in base_setup -->
+    <!-- Extend the base settings form; place our block immediately under the top-level settings div -->
     <record id="view_oidc_res_config_settings" model="ir.ui.view">
         <field name="name">res.config.settings.view.form.oidc</field>
         <field name="model">res.config.settings</field>
         <field name="inherit_id" ref="base_setup.res_config_settings_view_form"/>
         <field name="arch" type="xml">
-            <!-- Insert settings block early in the settings sheet (anchor on sheet to avoid class/id escaping issues) -->
-            <xpath expr="//sheet" position="inside">
+            <!-- Avoid quote escaping issues by targeting the div with id 'settings' using double quotes on the attribute -->
+            <xpath expr="//div[@id=&quot;settings&quot;]" position="inside">
                 <div class="app_settings_block" string="OIDC Provider">
                     <h2>OIDC Provider Settings</h2>
                     <div class="row mt16 o_settings_container">
