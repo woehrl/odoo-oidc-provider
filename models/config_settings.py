@@ -4,8 +4,8 @@ from odoo import api, fields, models
 class ResConfigSettings(models.TransientModel):
     _inherit = "res.config.settings"
 
-    # Add optional fields that other modules might expect
-    enable_ocn = fields.Boolean(string="Enable OCN", default=False, required=False)
+    # Field "enable_ocn" is a depency of module "mail_mobile". Error about that missing field should only throw in developer mode and has nothing to do with our module
+    #enable_ocn = fields.Boolean(string="Enable OCN", default=False, required=False)
 
     oidc_require_https = fields.Boolean(
         string="Require HTTPS for OIDC endpoints",
