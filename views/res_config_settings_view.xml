@@ -6,8 +6,8 @@
         <field name="model">res.config.settings</field>
         <field name="inherit_id" ref="base_setup.res_config_settings_view_form"/>
         <field name="arch" type="xml">
-            <!-- Avoid quote escaping issues by targeting the div with id 'settings' using double quotes on the attribute -->
-            <xpath expr="//div[@id=&quot;settings&quot;]" position="inside">
+            <!-- Target the settings div using single quotes in XPath -->
+            <xpath expr="//form" position="inside">
                 <div class="app_settings_block" string="OIDC Provider">
                     <h2>OIDC Provider Settings</h2>
                     <div class="row mt16 o_settings_container">
