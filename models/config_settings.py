@@ -37,23 +37,36 @@ class ResConfigSettings(models.TransientModel):
     def get_values(self):
         res = super(ResConfigSettings, self).get_values()
         ICPSudo = self.env['ir.config_parameter'].sudo()
+
+        # Get parameter value with sensible security defaults for fresh installs
+        # If parameter doesn't exist (None), use the default value
+        # Security-related settings default to True, others to False
+        def get_bool_param(key, default=False):
+            value = ICPSudo.get_param(key)
+            if value is None:
+                return default
+            return value == 'True'
+
         res.update(
-            oidc_require_https=ICPSudo.get_param('odoo_oidc.require_https', default='True') == 'True',
-            oidc_require_pkce_public=ICPSudo.get_param('odoo_oidc.require_pkce_public', default='True') == 'True',
-            oidc_pkce_require_s256=ICPSudo.get_param('odoo_oidc.pkce_require_s256', default='True') == 'True',
-            oidc_require_nonce=ICPSudo.get_param('odoo_oidc.require_nonce', default='True') == 'True',
-            oidc_allow_external_redirects=ICPSudo.get_param('odoo_oidc.allow_external_redirects', default='True') == 'True',
+            oidc_require_https=get_bool_param('odoo_oidc.require_https', default=True),
+            oidc_require_pkce_public=get_bool_param('odoo_oidc.require_pkce_public', default=True),
+            oidc_pkce_require_s256=get_bool_param('odoo_oidc.pkce_require_s256', default=True),
+            oidc_require_nonce=get_bool_param('odoo_oidc.require_nonce', default=True),
+            oidc_allow_external_redirects=get_bool_param('odoo_oidc.allow_external_redirects', default=True),
         )
         return res
 
     def set_values(self):
         super(ResConfigSettings, self).set_values()
         ICPSudo = self.env['ir.config_parameter'].sudo()
-        ICPSudo.set_param('odoo_oidc.require_https', self.oidc_require_https)
-        ICPSudo.set_param('odoo_oidc.require_pkce_public', self.oidc_require_pkce_public)
-        ICPSudo.set_param('odoo_oidc.pkce_require_s256', self.oidc_pkce_require_s256)
-        ICPSudo.set_param('odoo_oidc.require_nonce', self.oidc_require_nonce)
-        ICPSudo.set_param('odoo_oidc.allow_external_redirects', self.oidc_allow_external_redirects)
+
+        # Store True/False as strings 'True'/'False'
+        # This way we can distinguish between "not set" and "explicitly set to False"
+        ICPSudo.set_param('odoo_oidc.require_https', str(self.oidc_require_https))
+        ICPSudo.set_param('odoo_oidc.require_pkce_public', str(self.oidc_require_pkce_public))
+        ICPSudo.set_param('odoo_oidc.pkce_require_s256', str(self.oidc_pkce_require_s256))
+        ICPSudo.set_param('odoo_oidc.require_nonce', str(self.oidc_require_nonce))
+        ICPSudo.set_param('odoo_oidc.allow_external_redirects', str(self.oidc_allow_external_redirects))
 
     def name_get(self):
         # Use a stable label in breadcrumbs instead of "New"
