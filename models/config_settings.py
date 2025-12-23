@@ -4,6 +4,9 @@ from odoo import api, fields, models
 class ResConfigSettings(models.TransientModel):
     _inherit = "res.config.settings"
 
+    # Add optional fields that other modules might expect
+    enable_ocn = fields.Boolean(string="Enable OCN", default=False, required=False)
+
     oidc_require_https = fields.Boolean(
         string="Require HTTPS for OIDC endpoints",
         config_parameter="odoo_oidc.require_https",
