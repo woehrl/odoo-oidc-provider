@@ -165,6 +165,26 @@ Assume the app runs at https://example-app.test and uses the redirect URI https:
    - In the callback, POST the code to /oauth/token with grant_type=authorization_code, code_verifier, redirect_uri.
    - Use the access token for /oauth/userinfo.
 
+Documentation
+-------------
+
+For detailed guides and integration examples, see the docs/ directory:
+
+Setup and Configuration
+~~~~~~~~~~~~~~~~~~~~~~~
+- **Setup Guide** (docs/setup-guide.md): Step-by-step practical setup guide covering security settings, signing keys, scopes, OAuth clients, and testing procedures.
+- **Security Best Practices** (docs/security.md): Detailed security settings documentation, configuration parameters, and hardening recommendations.
+- **Architecture Overview** (docs/architecture.md): Module components, OIDC flows, configuration storage, and extensibility notes.
+
+Client Integration Guides
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+- **Python Integration** (docs/client-python.md): Complete examples for integrating OIDC authentication in Python 3.7+ applications using Authlib, Flask, Django, and manual implementations with PKCE.
+- **PHP Integration** (docs/client-php.md): Integration examples for PHP 7.4+ applications using League OAuth2 Client, Laravel, Symfony, WordPress, and manual implementations.
+
+Quick References
+~~~~~~~~~~~~~~~~
+- **README.md**: Quick reference guide with installation checklist, known issues, and endpoint overview.
+
 Known Issues
 ------------
 
