@@ -1,0 +1,9 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_auth_oidc_client,auth_oidc.client,model_auth_oidc_client,base.group_system,1,1,1,1
+access_auth_oidc_scope,auth_oidc.scope,model_auth_oidc_scope,base.group_system,1,1,1,1
+access_auth_oidc_token,auth_oidc.token,model_auth_oidc_token,base.group_system,1,0,0,1
+access_auth_oidc_code,auth_oidc.authorization_code,model_auth_oidc_authorization_code,base.group_system,1,1,1,1
+access_auth_oidc_consent,auth_oidc.consent,model_auth_oidc_consent,base.group_system,1,1,1,1
+access_auth_oidc_key,auth_oidc.key,model_auth_oidc_key,base.group_system,1,1,1,1
+access_auth_oidc_event,auth_oidc.event,model_auth_oidc_event,base.group_system,1,1,1,1
+access_auth_oidc_dashboard,auth_oidc.dashboard,model_auth_oidc_dashboard,base.group_system,1,1,1,1

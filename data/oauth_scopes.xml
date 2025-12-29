@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="auth_oidc_scope_openid" model="auth_oidc.scope">
+        <field name="name">openid</field>
+        <field name="description">Core scope required for OpenID Connect.</field>
+    </record>
+    <record id="auth_oidc_scope_profile" model="auth_oidc.scope">
+        <field name="name">profile</field>
+        <field name="description">Basic profile information.</field>
+    </record>
+    <record id="auth_oidc_scope_email" model="auth_oidc.scope">
+        <field name="name">email</field>
+        <field name="description">Access to user email attributes.</field>
+    </record>
+</odoo>

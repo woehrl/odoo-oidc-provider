@@ -1,0 +1,79 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: odoo_oidc_provider\n"
+"Language: de\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+# Menus and actions
+msgid "OIDC Provider"
+msgstr "OIDC Provider"
+
+msgid "Configuration"
+msgstr "Konfiguration"
+
+msgid "Security"
+msgstr "Sicherheit"
+
+msgid "Clients"
+msgstr "Clients"
+
+msgid "Keys"
+msgstr "Schlüssel"
+
+msgid "Scopes"
+msgstr "Scopes"
+
+msgid "Events"
+msgstr "Ereignisse"
+
+# Forms
+msgid "OIDC Client"
+msgstr "OIDC Client"
+
+msgid "OIDC Key"
+msgstr "OIDC Schlüssel"
+
+msgid "OIDC Scope"
+msgstr "OIDC Scope"
+
+msgid "Authorize application"
+msgstr "Anwendung autorisieren"
+
+msgid "Requested scopes:"
+msgstr "Angeforderte Scopes:"
+
+msgid "No explicit scopes requested."
+msgstr "Keine Scopes angefordert."
+
+msgid "Approve"
+msgstr "Erlauben"
+
+msgid "Deny"
+msgstr "Ablehnen"
+
+msgid "Generate Secret"
+msgstr "Secret generieren"
+
+msgid "Generate HS Key"
+msgstr "HS-Schlüssel generieren"
+
+msgid "For RSA, paste PEM + Public JWK manually (TODO: add server-side RSA generator)."
+msgstr "Für RSA PEM + Public JWK manuell einfügen (TODO: serverseitigen RSA-Generator ergänzen)."
+msgid "Dashboard"
+msgstr "Dashboard"
+
+msgid "OIDC Dashboard"
+msgstr "OIDC Dashboard"
+
+msgid "Projekt-Repo"
+msgstr "Projekt-Repo"
+
+msgid "Aktualisieren"
+msgstr "Aktualisieren"
+
+msgid "Generate RSA Keypair"
+msgstr "RSA-Schl�ssel erzeugen"
+
+msgid "RSA keypair can be generated here; share only the Public JWK with clients."
+msgstr "RSA-Schl�ssel hier erzeugen; nur den Public JWK an Clients weitergeben."

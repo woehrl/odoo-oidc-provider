@@ -1,0 +1,208 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_auth_oidc_root" name="OIDC Provider" parent="base.menu_administration" sequence="50"/>
+
+    <record id="action_auth_oidc_dashboard" model="ir.actions.act_window">
+        <field name="name">OIDC Dashboard</field>
+        <field name="res_model">auth_oidc.dashboard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{"default_docs_url": "https://github.com/woehrl/odoo-oidc-provider"}</field>
+    </record>
+    <menuitem id="menu_auth_oidc_dashboard" name="Dashboard" parent="menu_auth_oidc_root" sequence="1" action="action_auth_oidc_dashboard"/>
+
+    <menuitem id="menu_auth_oidc_config" name="Configuration" parent="menu_auth_oidc_root" sequence="10"/>
+    <menuitem id="menu_auth_oidc_security" name="Security" parent="menu_auth_oidc_root" sequence="20"/>
+
+    <record id="view_auth_oidc_dashboard_form" model="ir.ui.view">
+        <field name="name">auth.oidc.dashboard.form</field>
+        <field name="model">auth_oidc.dashboard</field>
+        <field name="arch" type="xml">
+            <form string="OIDC Dashboard">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_docs" type="object" class="oe_stat_button" icon="fa-external-link">
+                            <div>Project Repo</div>
+                        </button>
+                        <button name="action_refresh" type="object" class="oe_stat_button" icon="fa-refresh">
+                            <div>Refresh</div>
+                        </button>
+                    </div>
+                    <group string="Overview">
+                        <field name="client_count" readonly="1"/>
+                        <field name="key_count" readonly="1"/>
+                        <field name="scope_count" readonly="1"/>
+                        <field name="event_count" readonly="1"/>
+                    </group>
+                    <group string="Scheduler">
+                        <field name="cron_tokens_active" readonly="1"/>
+                        <field name="cron_tokens_next" readonly="1"/>
+                        <field name="cron_codes_active" readonly="1"/>
+                        <field name="cron_codes_next" readonly="1"/>
+                    </group>
+                    <group string="Getting started">
+                        <p>1. Create signing keys (RSA recommended) or generate HS keys.</p>
+                        <p>2. Check scopes (openid/profile/email) and extend if needed.</p>
+                        <p>3. Create clients (exact redirect URIs, PKCE for public clients).</p>
+                        <p>4. Test discovery/JWKS/authorize/token/userinfo.</p>
+                        <p>More info: <a href="https://github.com/woehrl/odoo-oidc-provider" target="_blank">GitHub project page</a></p>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_auth_oidc_client_tree" model="ir.ui.view">
+        <field name="name">auth.oidc.client.tree</field>
+        <field name="model">auth_oidc.client</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="client_id"/>
+                <field name="is_confidential"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_auth_oidc_client_form" model="ir.ui.view">
+        <field name="name">auth.oidc.client.form</field>
+        <field name="model">auth_oidc.client</field>
+        <field name="arch" type="xml">
+            <form string="OIDC Client">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="client_id"/>
+                        <field name="client_secret" password="True" groups="base.group_system"/>
+                        <button name="action_generate_secret" type="object" string="Generate Secret" class="btn-secondary" groups="base.group_system"/>
+                        <field name="is_confidential"/>
+                        <field name="active"/>
+                    </group>
+                    <group>
+                        <field name="redirect_uris" widget="text" placeholder="https://app.example.com/callback"/>
+                        <field name="allowed_scopes" widget="many2many_tags"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_auth_oidc_key_tree" model="ir.ui.view">
+        <field name="name">auth.oidc.key.tree</field>
+        <field name="model">auth_oidc.key</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="kid"/>
+                <field name="alg"/>
+                <field name="kty"/>
+                <field name="active"/>
+                <field name="expires_at"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_auth_oidc_key_form" model="ir.ui.view">
+        <field name="name">auth.oidc.key.form</field>
+        <field name="model">auth_oidc.key</field>
+        <field name="arch" type="xml">
+            <form string="OIDC Key">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="kid"/>
+                        <field name="alg"/>
+                        <field name="kty"/>
+                        <field name="use"/>
+                        <field name="active"/>
+                        <field name="expires_at"/>
+                    </group>
+                    <notebook>
+                        <page string="Key Data">
+                            <group>
+                                <button name="action_generate_rsa_key" type="object" string="Generate RSA Keypair" class="btn-primary" groups="base.group_system"/>
+                                <button name="action_generate_hs_key" type="object" string="Generate HS Key" class="btn-secondary" groups="base.group_system"/>
+                            </group>
+                            <field name="private_key_pem" widget="text" groups="base.group_system"/>
+                            <field name="public_jwk" widget="text"/>
+                            <label for="private_key_pem" class="o_form_label" string="RSA keypair can be generated here; share only the Public JWK with clients."/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_auth_oidc_scope_tree" model="ir.ui.view">
+        <field name="name">auth.oidc.scope.tree</field>
+        <field name="model">auth_oidc.scope</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="description"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_auth_oidc_scope_form" model="ir.ui.view">
+        <field name="name">auth_oidc.scope.form</field>
+        <field name="model">auth_oidc.scope</field>
+        <field name="arch" type="xml">
+            <form string="OIDC Scope">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="description"/>
+                        <field name="active"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_auth_oidc_event_tree" model="ir.ui.view">
+        <field name="name">auth.oidc.event.tree</field>
+        <field name="model">auth_oidc.event</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="create_date"/>
+                <field name="event_type"/>
+                <field name="client_id"/>
+                <field name="user_id"/>
+                <field name="ip_address"/>
+                <field name="user_agent"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_auth_oidc_clients" model="ir.actions.act_window">
+        <field name="name">OIDC Clients</field>
+        <field name="res_model">auth_oidc.client</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="action_auth_oidc_keys" model="ir.actions.act_window">
+        <field name="name">OIDC Keys</field>
+        <field name="res_model">auth_oidc.key</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="action_auth_oidc_scopes" model="ir.actions.act_window">
+        <field name="name">OIDC Scopes</field>
+        <field name="res_model">auth_oidc.scope</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="action_auth_oidc_events" model="ir.actions.act_window">
+        <field name="name">OIDC Events</field>
+        <field name="res_model">auth_oidc.event</field>
+        <field name="view_mode">list</field>
+    </record>
+
+    <menuitem id="menu_auth_oidc_clients" name="Clients" parent="menu_auth_oidc_config" action="action_auth_oidc_clients"/>
+    <menuitem id="menu_auth_oidc_keys" name="Keys" parent="menu_auth_oidc_config" action="action_auth_oidc_keys" groups="base.group_system"/>
+    <menuitem id="menu_auth_oidc_scopes" name="Scopes" parent="menu_auth_oidc_config" action="action_auth_oidc_scopes"/>
+    <menuitem id="menu_auth_oidc_events" name="Events" parent="menu_auth_oidc_security" action="action_auth_oidc_events" groups="base.group_system"/>
+</odoo>
