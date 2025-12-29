@@ -9,12 +9,20 @@ from odoo import http, fields
 from odoo.http import request
 
 
-def _json_response(payload, status=200):
-    return http.Response(
-        json.dumps(payload),
-        status=status,
-        headers={"Content-Type": "application/json"},
-    )
+RATE_LIMIT_DEFAULTS = {
+    "authorize": (30, 60),
+    "token": (60, 60),
+    "userinfo": (120, 60),
+    "introspect": (60, 60),
+    "revoke": (60, 60),
+}
+
+
+def _json_response(payload, status=200, headers=None):
+    base_headers = {"Content-Type": "application/json"}
+    if headers:
+        base_headers.update(headers)
+    return http.Response(json.dumps(payload), status=status, headers=base_headers)
 
 
 def _base_url():
@@ -24,6 +32,38 @@ def _base_url():
 def _bool_param(key, default=False):
     param = request.env["ir.config_parameter"].sudo().get_param(key, str(default))
     return str(param).lower() in {"1", "true", "yes", "on"}
+
+
+def _rate_limit(bucket, client=None):
+    defaults = RATE_LIMIT_DEFAULTS.get(bucket, (30, 60))
+    config = request.env["ir.config_parameter"].sudo()
+    try:
+        limit = int(config.get_param(f"odoo_oidc.rate_limit.{bucket}.limit", defaults[0]))
+    except Exception:
+        limit = defaults[0]
+    try:
+        window = int(config.get_param(f"odoo_oidc.rate_limit.{bucket}.window", defaults[1]))
+    except Exception:
+        window = defaults[1]
+    http_request = getattr(request, "httprequest", None)
+    ip_addr = getattr(http_request, "remote_addr", "unknown")
+    key_parts = [bucket, ip_addr]
+    if client and getattr(client, "client_id", None):
+        key_parts.append(client.client_id)
+    key = ":".join(key_parts)
+    allowed, retry_after = request.env["auth_oidc.rate_limit"].sudo().register_hit(
+        key, limit, window
+    )
+    if not allowed:
+        headers = {}
+        if retry_after:
+            headers["Retry-After"] = str(retry_after)
+        return _json_response(
+            {"error": "rate_limited", "error_description": "Too many requests"},
+            status=429,
+            headers=headers,
+        )
+    return None
 
 
 def _log_event(event_type, description, client=None, user=None):
@@ -132,6 +172,8 @@ class OidcController(http.Controller):
         allowed = set(client.allowed_scopes.mapped("name"))
         if allowed:
             scopes_requested = [s for s in scopes_requested if s in allowed]
+        elif not _bool_param("odoo_oidc.allow_all_scopes_when_unset", False):
+            scopes_requested = []
         return scopes_requested
 
     @http.route(
@@ -144,6 +186,9 @@ class OidcController(http.Controller):
         https_guard = _require_https()
         if https_guard:
             return https_guard
+        rl_guard = _rate_limit("authorize")
+        if rl_guard:
+            return rl_guard
 
         response_type = params.get("response_type")
         client_id = params.get("client_id")
@@ -267,6 +312,8 @@ class OidcController(http.Controller):
         key = request.env["auth_oidc.key"].sudo().get_active_signing_key()
         if not key:
             return None, "No active signing key"
+        if not key.private_key_pem:
+            return None, "Signing key missing secret material"
         claims = {
             "iss": _base_url(),
             "sub": str(user.id),
@@ -292,7 +339,7 @@ class OidcController(http.Controller):
         headers = {"kid": key.kid, "alg": key.alg}
         signed = jwt.encode(
             claims,
-            key.private_key_pem if key.alg.startswith("RS") else key.private_key_pem or key.kid,
+            key.private_key_pem if key.alg.startswith("RS") else key.private_key_pem,
             algorithm=key.alg,
             headers=headers,
         )
@@ -309,6 +356,9 @@ class OidcController(http.Controller):
         https_guard = _require_https()
         if https_guard:
             return https_guard
+        rl_guard = _rate_limit("token")
+        if rl_guard:
+            return rl_guard
 
         grant_type = params.get("grant_type")
         token_model = request.env["auth_oidc.token"].sudo()
@@ -338,6 +388,8 @@ class OidcController(http.Controller):
             user = auth_code.user_id.sudo()
             access = token_model.create_access_token(client, user, scopes)
             refresh = token_model.create_refresh_token(client, user, scopes)
+            access_token_value = getattr(access, "token_value", None) or access.token
+            refresh_token_value = getattr(refresh, "token_value", None) or refresh.token
 
             id_token = None
             id_token_error = None
@@ -347,14 +399,14 @@ class OidcController(http.Controller):
                     user,
                     scope_names,
                     nonce=auth_code.nonce,
-                    access_token=access.token,
+                    access_token=access_token_value,
                 )
 
             response = {
-                "access_token": access.token,
+                "access_token": access_token_value,
                 "token_type": "bearer",
                 "expires_in": 3600,
-                "refresh_token": refresh.token,
+                "refresh_token": refresh_token_value,
                 "scope": " ".join(scope_names),
             }
             if id_token:
@@ -367,17 +419,21 @@ class OidcController(http.Controller):
 
         if grant_type == "refresh_token":
             refresh_token_value = params.get("refresh_token")
-            access, new_refresh = token_model.rotate_refresh_token(refresh_token_value)
+            access, new_refresh = token_model.rotate_refresh_token(
+                refresh_token_value, client
+            )
             if not access:
                 return _json_response({"error": "invalid_grant"}, status=400)
+            access_token_value = getattr(access, "token_value", None) or access.token
+            refresh_token_value = getattr(new_refresh, "token_value", None) if new_refresh else None
             response = {
-                "access_token": access.token,
+                "access_token": access_token_value,
                 "token_type": "bearer",
                 "expires_in": 3600,
                 "scope": " ".join(access.scope_ids.mapped("name")),
             }
             if new_refresh:
-                response["refresh_token"] = new_refresh.token
+                response["refresh_token"] = refresh_token_value or new_refresh.token
             _log_event("token_rotated", "Rotated refresh token", client=client, user=access.user_id)
             return _json_response(response)
 
@@ -394,6 +450,9 @@ class OidcController(http.Controller):
         https_guard = _require_https()
         if https_guard:
             return https_guard
+        rl_guard = _rate_limit("revoke")
+        if rl_guard:
+            return rl_guard
 
         client = self._authenticate_client(params)
         if not client:
@@ -402,7 +461,8 @@ class OidcController(http.Controller):
         if not token_value:
             return _json_response({"error": "invalid_request"}, status=400)
         token_model = request.env["auth_oidc.token"].sudo()
-        token = token_model.search([("token", "=", token_value)], limit=1)
+        hashed = token_model._hash_token(token_value)
+        token = token_model.search([("token", "=", hashed)], limit=1)
         if token and token.client_id == client:
             token.unlink()
             _log_event("token_revoked", "Token revoked", client=client, user=token.user_id)
@@ -419,6 +479,9 @@ class OidcController(http.Controller):
         https_guard = _require_https()
         if https_guard:
             return https_guard
+        rl_guard = _rate_limit("introspect")
+        if rl_guard:
+            return rl_guard
 
         client = self._authenticate_client(params)
         if not client:
@@ -427,14 +490,17 @@ class OidcController(http.Controller):
         if not token_value:
             return _json_response({"error": "invalid_request"}, status=400)
         token_model = request.env["auth_oidc.token"].sudo()
-        token = token_model.search([("token", "=", token_value)], limit=1)
-        if not token:
+        hashed = token_model._hash_token(token_value)
+        token = token_model.search([("token", "=", hashed)], limit=1)
+        if not token or token.client_id != client:
             return _json_response({"active": False})
         active = token.expires_at and fields.Datetime.to_datetime(
             token.expires_at
         ) > datetime.utcnow()
+        if not active:
+            return _json_response({"active": False})
         payload = {
-            "active": bool(active),
+            "active": True,
             "client_id": token.client_id.client_id,
             "token_type": token.token_type,
             "exp": int(fields.Datetime.to_datetime(token.expires_at).timestamp()),
@@ -454,6 +520,9 @@ class OidcController(http.Controller):
         https_guard = _require_https()
         if https_guard:
             return https_guard
+        rl_guard = _rate_limit("userinfo")
+        if rl_guard:
+            return rl_guard
 
         auth_header = request.httprequest.headers.get("Authorization", "")
         if not auth_header.lower().startswith("bearer "):

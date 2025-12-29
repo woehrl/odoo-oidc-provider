@@ -6,6 +6,9 @@
     "license": "LGPL-3",
     "category": "Authentication",
     "depends": ["base", "web", "auth_signup"],
+    "external_dependencies": {
+        "python": ["jwt", "cryptography"],
+    },
     "data": [
         "security/ir.model.access.csv",
         "data/oauth_scopes.xml",

@@ -1,4 +1,4 @@
-msgid ""
+﻿msgid ""
 msgstr ""
 "Project-Id-Version: odoo_oidc_provider\n"
 "Language: de\n"
@@ -60,20 +60,21 @@ msgstr "HS-Schlüssel generieren"
 
 msgid "For RSA, paste PEM + Public JWK manually (TODO: add server-side RSA generator)."
 msgstr "Für RSA PEM + Public JWK manuell einfügen (TODO: serverseitigen RSA-Generator ergänzen)."
+
 msgid "Dashboard"
 msgstr "Dashboard"
 
 msgid "OIDC Dashboard"
 msgstr "OIDC Dashboard"
 
-msgid "Projekt-Repo"
+msgid "Project Repo"
 msgstr "Projekt-Repo"
 
-msgid "Aktualisieren"
+msgid "Refresh"
 msgstr "Aktualisieren"
 
 msgid "Generate RSA Keypair"
-msgstr "RSA-Schl�ssel erzeugen"
+msgstr "RSA-Schlüsselpaar erzeugen"
 
 msgid "RSA keypair can be generated here; share only the Public JWK with clients."
-msgstr "RSA-Schl�ssel hier erzeugen; nur den Public JWK an Clients weitergeben."
+msgstr "RSA-Schlüsselpaar hier erzeugen; nur den Public JWK an Clients weitergeben."

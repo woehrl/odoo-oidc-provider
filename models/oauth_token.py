@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+import hashlib
 import secrets
 
 from odoo import api, fields, models
@@ -49,6 +50,10 @@ class OAuthToken(models.Model):
         ("auth_oidc_token_unique", "unique(token)", "Token value must be unique."),
     ]
 
+    @staticmethod
+    def _hash_token(token_value):
+        return hashlib.sha256(token_value.encode()).hexdigest()
+
     @api.model
     def _normalize_scopes(self, scopes):
         """Return a scope recordset for the given input (names or records)."""
@@ -77,16 +82,22 @@ class OAuthToken(models.Model):
             datetime.utcnow() + timedelta(seconds=ttl_seconds)
         )
         scope_records = self._normalize_scopes(scopes)
-        return self.create(
+        token_value = secrets.token_urlsafe(32)
+        hashed = self._hash_token(token_value)
+        record = self.create(
             {
                 "token_type": token_type,
-                "token": secrets.token_urlsafe(32),
+                "token": hashed,
                 "client_id": client.id,
                 "user_id": user.id,
                 "expires_at": expires_at,
                 "scope_ids": [(6, 0, scope_records.ids)],
             }
         )
+        # Store raw token on the in-memory record to return to callers without persisting it.
+        for rec in record:
+            rec.token_value = token_value
+        return record
 
     @api.model
     def create_access_token(self, client, user, scopes, ttl_seconds=3600):
@@ -103,9 +114,10 @@ class OAuthToken(models.Model):
         """Return a valid access token record or False."""
         if not token_value:
             return False
+        hashed = self._hash_token(token_value)
         token = self.search(
             [
-                ("token", "=", token_value),
+                ("token", "=", hashed),
                 ("token_type", "=", "access"),
             ],
             limit=1,
@@ -121,24 +133,27 @@ class OAuthToken(models.Model):
         return token
 
     @api.model
-    def rotate_refresh_token(self, refresh_token_value):
+    def rotate_refresh_token(self, refresh_token_value, client):
         """Simple rotation: create new access+refresh tokens and drop the old one."""
-        if not refresh_token_value:
+        if not refresh_token_value or not client:
             return False, False
+        hashed = self._hash_token(refresh_token_value)
         refresh_token = self.search(
             [
-                ("token", "=", refresh_token_value),
+                ("token", "=", hashed),
                 ("token_type", "=", "refresh"),
             ],
             limit=1,
         )
         if not refresh_token:
             return False, False
+        if refresh_token.client_id != client:
+            return False, False
         if refresh_token.expires_at and fields.Datetime.to_datetime(
             refresh_token.expires_at
         ) < datetime.utcnow():
             return False, False
-        if not refresh_token.client_id.active:
+        if not refresh_token.client_id.active or not client.active:
             return False, False
 
         scopes = refresh_token.scope_ids

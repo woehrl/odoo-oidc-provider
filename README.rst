@@ -28,7 +28,19 @@ Configuration (post-install)
 4. Security/hardening (system parameters):
    - odoo_oidc.require_https (default True): enforce HTTPS for all endpoints.
    - odoo_oidc.pkce_require_s256 (default True): forbid PKCE plain.
+   - odoo_oidc.rate_limit.<bucket>.limit / .window: per-endpoint abuse protection (authorize/token/userinfo/introspect/revoke).
+   - odoo_oidc.allow_all_scopes_when_unset (default False): keep default-deny when a client has no allowed scopes set.
 5. Cron jobs: expired tokens and codes are cleaned up every 30 minutes (see data/cron.xml).
+
+Hardened rollout checklist
+--------------------------
+- Enforce HTTPS, HSTS, and secure cookies on the reverse proxy; keep `odoo_oidc.require_https` True.
+- Configure allowed scopes per client (default-deny if unset); avoid wildcard redirect URIs.
+- Generate RSA signing keys and plan rotation; keep private keys restricted to the System group.
+- Keep PKCE with S256 required; public clients must not send secrets.
+- Rate-limit public endpoints (system params above) and monitor `auth_oidc.event` for anomalies.
+- Tokens are hashed at rest; still limit database access and add IP/device binding if required.
+- Ensure `PyJWT` and `cryptography` are available (declared in requirements.txt / external_dependencies).
 
 Admin Dashboard
 ---------------

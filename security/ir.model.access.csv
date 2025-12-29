@@ -7,3 +7,4 @@ access_auth_oidc_consent,auth_oidc.consent,model_auth_oidc_consent,base.group_sy
 access_auth_oidc_key,auth_oidc.key,model_auth_oidc_key,base.group_system,1,1,1,1
 access_auth_oidc_event,auth_oidc.event,model_auth_oidc_event,base.group_system,1,1,1,1
 access_auth_oidc_dashboard,auth_oidc.dashboard,model_auth_oidc_dashboard,base.group_system,1,1,1,1
+access_auth_oidc_rate_limit,auth_oidc.rate_limit,model_auth_oidc_rate_limit,base.group_system,1,1,1,1
