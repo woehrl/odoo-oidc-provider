@@ -1,78 +1,164 @@
-﻿msgid ""
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* odoo_oidc_provider
+#
+msgid ""
 msgstr ""
-"Project-Id-Version: odoo_oidc_provider\n"
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-01-01 00:00+0000\n"
+"PO-Revision-Date: 2024-01-01 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
 "Language: es\n"
+"MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
+#. module: odoo_oidc_provider
+#: model:ir.ui.menu,name:odoo_oidc_provider.menu_auth_oidc_root
 msgid "OIDC Provider"
 msgstr "Proveedor OIDC"
 
-msgid "Configuration"
-msgstr "Configuración"
-
-msgid "Security"
-msgstr "Seguridad"
-
-msgid "Clients"
-msgstr "Clientes"
-
-msgid "Keys"
-msgstr "Claves"
-
-msgid "Scopes"
-msgstr "Scopes"
-
-msgid "Events"
-msgstr "Eventos"
-
-msgid "OIDC Client"
-msgstr "Cliente OIDC"
-
-msgid "OIDC Key"
-msgstr "Clave OIDC"
-
-msgid "OIDC Scope"
-msgstr "Scope OIDC"
-
-msgid "Authorize application"
-msgstr "Autorizar aplicación"
-
-msgid "Requested scopes:"
-msgstr "Scopes solicitados:"
-
-msgid "No explicit scopes requested."
-msgstr "Ningún scope solicitado."
-
-msgid "Approve"
-msgstr "Aprobar"
-
-msgid "Deny"
-msgstr "Rechazar"
-
-msgid "Generate Secret"
-msgstr "Generar secreto"
-
-msgid "Generate HS Key"
-msgstr "Generar clave HS"
-
-msgid "For RSA, paste PEM + Public JWK manually (TODO: add server-side RSA generator)."
-msgstr "Para RSA, pega PEM + JWK público manualmente (TODO: generador RSA en servidor)."
-
-msgid "Dashboard"
-msgstr "Panel"
-
+#. module: odoo_oidc_provider
+#: model:ir.actions.act_window,name:odoo_oidc_provider.action_auth_oidc_dashboard
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_dashboard_form
 msgid "OIDC Dashboard"
 msgstr "Panel OIDC"
 
+#. module: odoo_oidc_provider
+#: model:ir.ui.menu,name:odoo_oidc_provider.menu_auth_oidc_dashboard
+msgid "Dashboard"
+msgstr "Panel"
+
+#. module: odoo_oidc_provider
+#: model:ir.ui.menu,name:odoo_oidc_provider.menu_auth_oidc_config
+msgid "Configuration"
+msgstr "Configuración"
+
+#. module: odoo_oidc_provider
+#: model:ir.ui.menu,name:odoo_oidc_provider.menu_auth_oidc_security
+msgid "Security"
+msgstr "Seguridad"
+
+#. module: odoo_oidc_provider
+#: model:ir.ui.menu,name:odoo_oidc_provider.menu_auth_oidc_clients
+msgid "Clients"
+msgstr "Clientes"
+
+#. module: odoo_oidc_provider
+#: model:ir.ui.menu,name:odoo_oidc_provider.menu_auth_oidc_keys
+msgid "Keys"
+msgstr "Claves"
+
+#. module: odoo_oidc_provider
+#: model:ir.ui.menu,name:odoo_oidc_provider.menu_auth_oidc_scopes
+msgid "Scopes"
+msgstr "Scopes"
+
+#. module: odoo_oidc_provider
+#: model:ir.ui.menu,name:odoo_oidc_provider.menu_auth_oidc_events
+msgid "Events"
+msgstr "Eventos"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_client_form
+msgid "OIDC Client"
+msgstr "Cliente OIDC"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_key_form
+msgid "OIDC Key"
+msgstr "Clave OIDC"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_scope_form
+msgid "OIDC Scope"
+msgstr "Scope OIDC"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.consent_page
+msgid "Authorize application"
+msgstr "Autorizar aplicación"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.consent_page
+msgid "Requested scopes:"
+msgstr "Scopes solicitados:"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.consent_page
+msgid "No explicit scopes requested."
+msgstr "Ningún scope solicitado."
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.consent_page
+msgid "Approve"
+msgstr "Aprobar"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.consent_page
+msgid "Deny"
+msgstr "Rechazar"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_client_form
+msgid "Generate Secret"
+msgstr "Generar secreto"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_key_form
+msgid "Generate HS Key"
+msgstr "Generar clave HS"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_key_form
+msgid ""
+"For RSA, paste PEM + Public JWK manually (TODO: add server-side RSA "
+"generator)."
+msgstr ""
+"Para RSA, pega PEM + JWK público manualmente (TODO: generador RSA en "
+"servidor)."
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_dashboard_form
 msgid "Project Repo"
 msgstr "Repositorio del proyecto"
 
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_dashboard_form
 msgid "Refresh"
 msgstr "Actualizar"
 
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_key_form
 msgid "Generate RSA Keypair"
 msgstr "Generar par RSA"
 
-msgid "RSA keypair can be generated here; share only the Public JWK with clients."
-msgstr "Genera el par RSA aquí; comparte solo el JWK público con los clientes."
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_key_form
+msgid ""
+"RSA keypair can be generated here; share only the Public JWK with clients."
+msgstr ""
+"Genera el par RSA aquí; comparte solo el JWK público con los clientes."
+
+#. module: odoo_oidc_provider
+#: model:ir.actions.act_window,name:odoo_oidc_provider.action_auth_oidc_clients
+msgid "OIDC Clients"
+msgstr "Clientes OIDC"
+
+#. module: odoo_oidc_provider
+#: model:ir.actions.act_window,name:odoo_oidc_provider.action_auth_oidc_keys
+msgid "OIDC Keys"
+msgstr "Claves OIDC"
+
+#. module: odoo_oidc_provider
+#: model:ir.actions.act_window,name:odoo_oidc_provider.action_auth_oidc_scopes
+msgid "OIDC Scopes"
+msgstr "Scopes OIDC"
+
+#. module: odoo_oidc_provider
+#: model:ir.actions.act_window,name:odoo_oidc_provider.action_auth_oidc_events
+msgid "OIDC Events"
+msgstr "Eventos OIDC"
