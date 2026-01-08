@@ -1,6 +1,7 @@
 {
     "name": "Odoo OIDC Provider",
     "summary": "Use Odoo as an OAuth2 / OpenID Connect Identity Provider",
+    "icon": "static/description/icon.png",
     "version": "18.0.1.0.0",
     "author": "GJS Kanalkamera / PipeDesk",
     "license": "LGPL-3",
