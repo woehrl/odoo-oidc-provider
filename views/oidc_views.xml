@@ -178,76 +178,55 @@
         <field name="inherit_id" ref="base.res_config_settings_view_form"/>
         <field name="priority">90</field>
         <field name="arch" type="xml">
-            <xpath expr="//div[contains(@class, 'app_settings_block')][1]" position="before">
-                <div class="app_settings_block" data-string="OIDC Provider" string="OIDC Provider" data-key="oidc_provider">
-                    <h2>OIDC Provider</h2>
-                    <div class="o_setting_box">
-                        <div class="o_setting_left">
-                            <label for="require_https"/>
-                        </div>
-                        <div class="o_setting_right">
-                            <field name="require_https"/>
-                            <div class="text-muted">Reject non-HTTPS calls to OIDC endpoints.</div>
-                        </div>
-                    </div>
-                    <div class="o_setting_box">
-                        <div class="o_setting_left">
-                            <label for="pkce_require_s256"/>
-                        </div>
-                        <div class="o_setting_right">
-                            <field name="pkce_require_s256"/>
-                            <div class="text-muted">Enforce PKCE S256 (forbid plain) on Authorization Code.</div>
-                        </div>
-                    </div>
-                    <div class="o_setting_box">
-                        <div class="o_setting_left">
-                            <label for="allow_all_scopes_when_unset"/>
-                        </div>
-                        <div class="o_setting_right">
-                            <field name="allow_all_scopes_when_unset"/>
-                            <div class="text-muted">Default-deny unless explicitly enabled.</div>
-                        </div>
-                    </div>
-                    <div class="o_setting_box">
-                        <div class="o_setting_left">
-                            <label for="rate_limit_authorize_limit" string="Rate Limits"/>
-                        </div>
-                        <div class="o_setting_right">
-                            <div class="row">
-                                <div class="col-12 col-lg-6">
-                                    <label for="rate_limit_authorize_limit" class="o_form_label" string="Authorize"/>
-                                    <div class="o_row">
-                                        <field name="rate_limit_authorize_limit"/>
-                                        <field name="rate_limit_authorize_window"/>
-                                    </div>
-                                    <label for="rate_limit_token_limit" class="o_form_label" string="Token"/>
-                                    <div class="o_row">
-                                        <field name="rate_limit_token_limit"/>
-                                        <field name="rate_limit_token_window"/>
-                                    </div>
-                                    <label for="rate_limit_userinfo_limit" class="o_form_label" string="Userinfo"/>
-                                    <div class="o_row">
-                                        <field name="rate_limit_userinfo_limit"/>
-                                        <field name="rate_limit_userinfo_window"/>
-                                    </div>
+            <xpath expr="//block[@name='integration']" position="after">
+                <block title="OIDC Provider" name="oidc_provider_settings">
+                    <setting id="oidc_require_https" string="Require HTTPS">
+                        <field name="require_https"/>
+                        <div class="text-muted">Reject non-HTTPS calls to OIDC endpoints.</div>
+                    </setting>
+                    <setting id="oidc_pkce_s256" string="PKCE S256 only">
+                        <field name="pkce_require_s256"/>
+                        <div class="text-muted">Enforce PKCE S256 (forbid plain) on Authorization Code.</div>
+                    </setting>
+                    <setting id="oidc_allow_all_scopes" string="Allow all scopes when unset (not recommended)">
+                        <field name="allow_all_scopes_when_unset"/>
+                        <div class="text-muted">Default-deny unless explicitly enabled.</div>
+                    </setting>
+                    <setting id="oidc_rate_limits" string="Rate Limits">
+                        <div class="row">
+                            <div class="col-12 col-lg-6">
+                                <label for="rate_limit_authorize_limit" class="o_form_label" string="Authorize"/>
+                                <div class="o_row">
+                                    <field name="rate_limit_authorize_limit"/>
+                                    <field name="rate_limit_authorize_window"/>
                                 </div>
-                                <div class="col-12 col-lg-6">
-                                    <label for="rate_limit_introspect_limit" class="o_form_label" string="Introspect"/>
-                                    <div class="o_row">
-                                        <field name="rate_limit_introspect_limit"/>
-                                        <field name="rate_limit_introspect_window"/>
-                                    </div>
-                                    <label for="rate_limit_revoke_limit" class="o_form_label" string="Revoke"/>
-                                    <div class="o_row">
-                                        <field name="rate_limit_revoke_limit"/>
-                                        <field name="rate_limit_revoke_window"/>
-                                    </div>
+                                <label for="rate_limit_token_limit" class="o_form_label" string="Token"/>
+                                <div class="o_row">
+                                    <field name="rate_limit_token_limit"/>
+                                    <field name="rate_limit_token_window"/>
+                                </div>
+                                <label for="rate_limit_userinfo_limit" class="o_form_label" string="Userinfo"/>
+                                <div class="o_row">
+                                    <field name="rate_limit_userinfo_limit"/>
+                                    <field name="rate_limit_userinfo_window"/>
                                 </div>
                             </div>
-                            <div class="text-muted">Per-endpoint rate limits (limit/window in seconds).</div>
+                            <div class="col-12 col-lg-6">
+                                <label for="rate_limit_introspect_limit" class="o_form_label" string="Introspect"/>
+                                <div class="o_row">
+                                    <field name="rate_limit_introspect_limit"/>
+                                    <field name="rate_limit_introspect_window"/>
+                                </div>
+                                <label for="rate_limit_revoke_limit" class="o_form_label" string="Revoke"/>
+                                <div class="o_row">
+                                    <field name="rate_limit_revoke_limit"/>
+                                    <field name="rate_limit_revoke_window"/>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
+                        <div class="text-muted">Per-endpoint rate limits (limit/window in seconds).</div>
+                    </setting>
+                </block>
             </xpath>
         </field>
     </record>
