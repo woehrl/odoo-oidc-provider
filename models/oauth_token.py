@@ -28,6 +28,12 @@ class OAuthToken(models.Model):
         index=True,
     )
     token = fields.Char(required=True, index=True)
+    token_value = fields.Char(
+        string="Raw Token",
+        compute="_compute_token_value",
+        store=False,
+        help="Raw token value, only available in-memory after creation.",
+    )
     client_id = fields.Many2one(
         "auth_oidc.client",
         required=True,
@@ -49,6 +55,13 @@ class OAuthToken(models.Model):
     _sql_constraints = [
         ("auth_oidc_token_unique", "unique(token)", "Token value must be unique."),
     ]
+
+    def _compute_token_value(self):
+        """Expose raw token via context after creation without persisting it."""
+        token_map = self.env.context.get("token_value_map") or {}
+        default_val = self.env.context.get("token_value")
+        for rec in self:
+            rec.token_value = token_map.get(rec.id) or default_val
 
     @staticmethod
     def _hash_token(token_value):
@@ -94,11 +107,9 @@ class OAuthToken(models.Model):
                 "scope_ids": [(6, 0, scope_records.ids)],
             }
         )
-        # Store raw token on the in-memory record to return to callers without persisting it.
-        record = record.with_context(token_value=token_value)
-        for rec in record:
-            rec.token_value = token_value
-        return record
+        # Keep raw token in context only (not persisted) for immediate return.
+        token_map = {rec.id: token_value for rec in record}
+        return record.with_context(token_value_map=token_map, token_value=token_value)
 
     @api.model
     def create_access_token(self, client, user, scopes, ttl_seconds=3600):
