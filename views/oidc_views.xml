@@ -185,29 +185,29 @@
                     </group>
                     <group string="Rate Limits">
                         <group>
-                            <label string="Authorize"/>
+                            <label class="o_form_label" string="Authorize"/>
                             <div class="o_row">
                                 <field name="rate_limit_authorize_limit"/>
                                 <field name="rate_limit_authorize_window"/>
                             </div>
-                            <label string="Token"/>
+                            <label class="o_form_label" string="Token"/>
                             <div class="o_row">
                                 <field name="rate_limit_token_limit"/>
                                 <field name="rate_limit_token_window"/>
                             </div>
-                            <label string="Userinfo"/>
+                            <label class="o_form_label" string="Userinfo"/>
                             <div class="o_row">
                                 <field name="rate_limit_userinfo_limit"/>
                                 <field name="rate_limit_userinfo_window"/>
                             </div>
                         </group>
                         <group>
-                            <label string="Introspect"/>
+                            <label class="o_form_label" string="Introspect"/>
                             <div class="o_row">
                                 <field name="rate_limit_introspect_limit"/>
                                 <field name="rate_limit_introspect_window"/>
                             </div>
-                            <label string="Revoke"/>
+                            <label class="o_form_label" string="Revoke"/>
                             <div class="o_row">
                                 <field name="rate_limit_revoke_limit"/>
                                 <field name="rate_limit_revoke_window"/>
