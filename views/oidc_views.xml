@@ -178,7 +178,7 @@
         <field name="inherit_id" ref="base.res_config_settings_view_form"/>
         <field name="priority">90</field>
         <field name="arch" type="xml">
-            <xpath expr="//div[@id='settings']" position="inside">
+            <xpath expr="//div[contains(@class, 'app_settings_block')][1]" position="before">
                 <div class="app_settings_block" data-string="OIDC Provider" string="OIDC Provider" data-key="oidc_provider">
                     <h2>OIDC Provider</h2>
                     <div class="o_setting_box">
