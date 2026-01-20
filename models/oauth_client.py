@@ -63,3 +63,35 @@ class OAuthClient(models.Model):
         self.ensure_one()
         self.client_secret = secrets.token_urlsafe(32)
         return True
+
+    def action_revoke_authorizations(self):
+        """Remove all tokens, auth codes, and consents for this client."""
+        token_model = self.env["auth_oidc.token"].sudo()
+        code_model = self.env["auth_oidc.authorization_code"].sudo()
+        consent_model = self.env["auth_oidc.consent"].sudo()
+        event_model = self.env["auth_oidc.event"].sudo()
+
+        for client in self:
+            tokens = token_model.search([("client_id", "=", client.id)])
+            codes = code_model.search([("client_id", "=", client.id)])
+            consents = consent_model.search([("client_id", "=", client.id)])
+
+            token_count = len(tokens)
+            code_count = len(codes)
+            consent_count = len(consents)
+
+            tokens.unlink()
+            codes.unlink()
+            consents.unlink()
+
+            event_model.create(
+                {
+                    "event_type": "client_revoked",
+                    "description": (
+                        f"Revoked {token_count} tokens, {code_count} codes, "
+                        f"and {consent_count} consents"
+                    ),
+                    "client_id": client.id,
+                }
+            )
+        return True

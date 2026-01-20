@@ -280,7 +280,8 @@ class OidcController(http.Controller):
                 parsed.fragment,
             )
         )
-        return request.redirect(redirect_url)
+        # Allow off-site redirects (required for OIDC clients); default local=True would force current host.
+        return request.redirect(redirect_url, local=False)
 
     def _authenticate_client(self, params):
         auth_header = request.httprequest.headers.get("Authorization", "")

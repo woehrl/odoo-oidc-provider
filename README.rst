@@ -11,7 +11,7 @@ Installation
 - Restart Odoo and update the apps list.
 - Install the Odoo OIDC Provider module.
 
-oodoo.sh notes
+odoo.sh notes
 --------------
 - Add this repo as a custom addon in odoo.sh and enable requirements.txt.
 - After deployment, log in to the instance and complete the configuration below.
