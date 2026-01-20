@@ -29,11 +29,6 @@ def _base_url():
     return request.httprequest.host_url.rstrip("/")
 
 
-def _bool_param(key, default=False):
-    param = request.env["ir.config_parameter"].sudo().get_param(key, str(default))
-    return str(param).lower() in {"1", "true", "yes", "on"}
-
-
 def _rate_limit(bucket, client=None):
     defaults = RATE_LIMIT_DEFAULTS.get(bucket, (30, 60))
     config = request.env["ir.config_parameter"].sudo()
@@ -85,8 +80,6 @@ def _log_event(event_type, description, client=None, user=None):
 
 
 def _require_https():
-    if not _bool_param("odoo_oidc.require_https", True):
-        return None
     if request.httprequest.scheme != "https":
         return _json_response(
             {"error": "invalid_request", "error_description": "HTTPS required"},
@@ -118,12 +111,13 @@ class OidcController(http.Controller):
             "authorization_endpoint": f"{base_url}/oauth/authorize",
             "token_endpoint": f"{base_url}/oauth/token",
             "userinfo_endpoint": f"{base_url}/oauth/userinfo",
+            "end_session_endpoint": f"{base_url}/oauth/end_session",
             "jwks_uri": f"{base_url}/.well-known/jwks.json",
             "grant_types_supported": ["authorization_code", "refresh_token"],
             "response_types_supported": ["code"],
             "scopes_supported": scopes,
             "code_challenge_methods_supported": ["S256", "plain"],
-            "id_token_signing_alg_values_supported": ["RS256", "HS256"],
+            "id_token_signing_alg_values_supported": ["RS256"],
         }
         return _json_response(config)
 
@@ -197,7 +191,7 @@ class OidcController(http.Controller):
         state = params.get("state")
         nonce = params.get("nonce")
         code_challenge = params.get("code_challenge")
-        code_challenge_method = params.get("code_challenge_method", "plain")
+        code_challenge_method = params.get("code_challenge_method", "S256")
         prompt = params.get("prompt")
 
         if response_type != "code" or not client_id:
@@ -214,11 +208,14 @@ class OidcController(http.Controller):
         requested_scopes = self._required_scopes(client, scope)
         scope_str = " ".join(requested_scopes)
 
+        if "openid" in requested_scopes and not nonce:
+            return _json_response({"error": "invalid_request", "error_description": "nonce required for openid"}, status=400)
+
         if not client.is_confidential and not code_challenge:
             return _json_response({"error": "invalid_request", "error_description": "PKCE required for public clients"}, status=400)
 
-        if code_challenge_method == "plain" and _bool_param("odoo_oidc.pkce_require_s256", True):
-            return _json_response({"error": "invalid_request", "error_description": "S256 PKCE required"}, status=400)
+        if code_challenge_method not in {"S256", "plain"}:
+            return _json_response({"error": "invalid_request", "error_description": "Unsupported PKCE method"}, status=400)
 
         consent_model = request.env["auth_oidc.consent"].sudo()
         consent = consent_model.search(
@@ -318,9 +315,11 @@ class OidcController(http.Controller):
         claims = {
             "iss": _base_url(),
             "sub": str(user.id),
-            "aud": client.client_id,
+            "aud": [client.client_id],
             "iat": int(datetime.utcnow().timestamp()),
             "exp": int((datetime.utcnow() + timedelta(minutes=60)).timestamp()),
+            "auth_time": int(fields.Datetime.now().timestamp()),
+            "azp": client.client_id,
         }
         if nonce:
             claims["nonce"] = nonce
@@ -647,3 +646,22 @@ class OidcController(http.Controller):
                 payload["tz"] = user.tz
 
         return _json_response(payload)
+
+    @http.route(
+        "/oauth/end_session",
+        auth="public",
+        type="http",
+        csrf=False,
+        methods=["GET", "POST"],
+    )
+    def end_session(self, **params):
+        https_guard = _require_https()
+        if https_guard:
+            return https_guard
+        post_logout_redirect = params.get("post_logout_redirect_uri") or params.get("redirect_uri")
+        # Clear the current Odoo session if any.
+        if request.session.uid:
+            request.session.logout()
+        if post_logout_redirect:
+            return request.redirect(post_logout_redirect, local=False)
+        return _json_response({"message": "Session ended"})

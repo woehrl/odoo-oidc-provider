@@ -140,7 +140,6 @@
                         <page string="Key Data">
                             <group>
                                 <button name="action_generate_rsa_key" type="object" string="Generate RSA Keypair" class="btn-primary" groups="base.group_system"/>
-                                <button name="action_generate_hs_key" type="object" string="Generate HS Key" class="btn-secondary" groups="base.group_system"/>
                             </group>
                             <field name="private_key_pem" widget="text" groups="base.group_system"/>
                             <field name="public_jwk" widget="text"/>

@@ -24,12 +24,12 @@ class OAuthKey(models.Model):
     name = fields.Char(required=True)
     kid = fields.Char(required=True, index=True, help="Key identifier published in JWKS")
     alg = fields.Selection(
-        [("RS256", "RS256"), ("HS256", "HS256")],
+        [("RS256", "RS256")],
         required=True,
         default="RS256",
     )
     kty = fields.Selection(
-        [("RSA", "RSA"), ("oct", "oct")],
+        [("RSA", "RSA")],
         required=True,
         default="RSA",
     )
@@ -119,15 +119,6 @@ class OAuthKey(models.Model):
                     key.public_jwk = jwk_value
                 except Exception:
                     continue
-
-    def action_generate_hs_key(self):
-        """Generate a symmetric HS256 key and public JWK."""
-        self.ensure_one()
-        self.alg = "HS256"
-        self.kty = "oct"
-        self.private_key_pem = secrets.token_urlsafe(64)
-        self._sync_public_jwk()
-        return True
 
     def action_generate_rsa_key(self):
         """Generate an RSA key pair and fill public JWK."""
