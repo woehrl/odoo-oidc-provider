@@ -77,7 +77,7 @@
                                 class="oe_stat_button btn-danger"
                                 icon="fa-ban"
                                 confirm="Revoke all tokens, auth codes, and consents for this client?"
-                                attrs="{'invisible': [('id', '=', False)]}">
+                                modifiers='{"invisible": [["id", "=", false]]}'>
                             <div>Remove Existing Authentication</div>
                         </button>
                     </div>
