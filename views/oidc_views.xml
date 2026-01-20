@@ -185,29 +185,29 @@
                     </group>
                     <group string="Rate Limits">
                         <group>
-                            <label class="o_form_label" string="Authorize"/>
+                            <label for="rate_limit_authorize_limit" class="o_form_label" string="Authorize"/>
                             <div class="o_row">
                                 <field name="rate_limit_authorize_limit"/>
                                 <field name="rate_limit_authorize_window"/>
                             </div>
-                            <label class="o_form_label" string="Token"/>
+                            <label for="rate_limit_token_limit" class="o_form_label" string="Token"/>
                             <div class="o_row">
                                 <field name="rate_limit_token_limit"/>
                                 <field name="rate_limit_token_window"/>
                             </div>
-                            <label class="o_form_label" string="Userinfo"/>
+                            <label for="rate_limit_userinfo_limit" class="o_form_label" string="Userinfo"/>
                             <div class="o_row">
                                 <field name="rate_limit_userinfo_limit"/>
                                 <field name="rate_limit_userinfo_window"/>
                             </div>
                         </group>
                         <group>
-                            <label class="o_form_label" string="Introspect"/>
+                            <label for="rate_limit_introspect_limit" class="o_form_label" string="Introspect"/>
                             <div class="o_row">
                                 <field name="rate_limit_introspect_limit"/>
                                 <field name="rate_limit_introspect_window"/>
                             </div>
-                            <label class="o_form_label" string="Revoke"/>
+                            <label for="rate_limit_revoke_limit" class="o_form_label" string="Revoke"/>
                             <div class="o_row">
                                 <field name="rate_limit_revoke_limit"/>
                                 <field name="rate_limit_revoke_window"/>
