@@ -95,6 +95,7 @@ class OAuthToken(models.Model):
             }
         )
         # Store raw token on the in-memory record to return to callers without persisting it.
+        record = record.with_context(token_value=token_value)
         for rec in record:
             rec.token_value = token_value
         return record
