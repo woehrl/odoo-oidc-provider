@@ -333,8 +333,52 @@ class OidcController(http.Controller):
             if user.company_id:
                 claims["company_id"] = user.company_id.id
                 claims["company_name"] = user.company_id.name
+                if user.company_id.vat:
+                    claims["company_vat"] = user.company_id.vat
+                if user.company_id.country_id:
+                    claims["company_country"] = user.company_id.country_id.code or user.company_id.country_id.name
+                if user.company_id.city:
+                    claims["company_city"] = user.company_id.city
+                if user.company_id.street:
+                    claims["company_street"] = user.company_id.street
+                if user.company_id.phone:
+                    claims["company_phone"] = user.company_id.phone
             if user.partner_id:
                 claims["partner_id"] = user.partner_id.id
+                if user.partner_id.ref:
+                    claims["partner_ref"] = user.partner_id.ref
+        if "groups" in scope_names:
+            group_names = user.groups_id.mapped("display_name")
+            if group_names:
+                claims["groups"] = group_names
+        if "role" in scope_names:
+            role = user.groups_id[:1].display_name if user.groups_id else None
+            if role:
+                claims["role"] = role
+        if "address" in scope_names and user.partner_id:
+            partner = user.partner_id
+            if partner.street:
+                claims["street"] = partner.street
+            if partner.street2:
+                claims["street2"] = partner.street2
+            if partner.city:
+                claims["city"] = partner.city
+            if partner.zip:
+                claims["zip"] = partner.zip
+            if partner.state_id:
+                claims["state"] = partner.state_id.code or partner.state_id.name
+            if partner.country_id:
+                claims["country"] = partner.country_id.code or partner.country_id.name
+        if "phone" in scope_names:
+            if user.phone:
+                claims["phone"] = user.phone
+            if user.mobile:
+                claims["mobile"] = user.mobile
+        if "preferences" in scope_names:
+            if user.lang:
+                claims["lang"] = user.lang
+            if user.tz:
+                claims["tz"] = user.tz
 
         if access_token:
             try:
@@ -555,7 +599,51 @@ class OidcController(http.Controller):
             if user.company_id:
                 payload["company_id"] = user.company_id.id
                 payload["company_name"] = user.company_id.name
+                if user.company_id.vat:
+                    payload["company_vat"] = user.company_id.vat
+                if user.company_id.country_id:
+                    payload["company_country"] = user.company_id.country_id.code or user.company_id.country_id.name
+                if user.company_id.city:
+                    payload["company_city"] = user.company_id.city
+                if user.company_id.street:
+                    payload["company_street"] = user.company_id.street
+                if user.company_id.phone:
+                    payload["company_phone"] = user.company_id.phone
             if user.partner_id:
                 payload["partner_id"] = user.partner_id.id
+                if user.partner_id.ref:
+                    payload["partner_ref"] = user.partner_id.ref
+        if "groups" in scopes:
+            group_names = user.groups_id.mapped("display_name")
+            if group_names:
+                payload["groups"] = group_names
+        if "role" in scopes:
+            role = user.groups_id[:1].display_name if user.groups_id else None
+            if role:
+                payload["role"] = role
+        if "address" in scopes and user.partner_id:
+            partner = user.partner_id
+            if partner.street:
+                payload["street"] = partner.street
+            if partner.street2:
+                payload["street2"] = partner.street2
+            if partner.city:
+                payload["city"] = partner.city
+            if partner.zip:
+                payload["zip"] = partner.zip
+            if partner.state_id:
+                payload["state"] = partner.state_id.code or partner.state_id.name
+            if partner.country_id:
+                payload["country"] = partner.country_id.code or partner.country_id.name
+        if "phone" in scopes:
+            if user.phone:
+                payload["phone"] = user.phone
+            if user.mobile:
+                payload["mobile"] = user.mobile
+        if "preferences" in scopes:
+            if user.lang:
+                payload["lang"] = user.lang
+            if user.tz:
+                payload["tz"] = user.tz
 
         return _json_response(payload)

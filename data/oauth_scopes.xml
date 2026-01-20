@@ -16,4 +16,24 @@
         <field name="name">org</field>
         <field name="description">Include company/partner identifiers in ID Token and Userinfo.</field>
     </record>
+    <record id="auth_oidc_scope_groups" model="auth_oidc.scope">
+        <field name="name">groups</field>
+        <field name="description">Expose user groups/roles for authorization decisions.</field>
+    </record>
+    <record id="auth_oidc_scope_role" model="auth_oidc.scope">
+        <field name="name">role</field>
+        <field name="description">Expose a primary role tag derived from user groups.</field>
+    </record>
+    <record id="auth_oidc_scope_address" model="auth_oidc.scope">
+        <field name="name">address</field>
+        <field name="description">Expose partner address fields.</field>
+    </record>
+    <record id="auth_oidc_scope_phone" model="auth_oidc.scope">
+        <field name="name">phone</field>
+        <field name="description">Expose phone and mobile numbers.</field>
+    </record>
+    <record id="auth_oidc_scope_preferences" model="auth_oidc.scope">
+        <field name="name">preferences</field>
+        <field name="description">Expose user preferences such as language and timezone.</field>
+    </record>
 </odoo>
