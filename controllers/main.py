@@ -329,6 +329,12 @@ class OidcController(http.Controller):
             claims["email_verified"] = False
         if "profile" in scope_names:
             claims["name"] = user.name
+        if "org" in scope_names:
+            if user.company_id:
+                claims["company_id"] = user.company_id.id
+                claims["company_name"] = user.company_id.name
+            if user.partner_id:
+                claims["partner_id"] = user.partner_id.id
 
         if access_token:
             try:
@@ -545,5 +551,11 @@ class OidcController(http.Controller):
         if "email" in scopes:
             payload["email"] = user.email or user.login
             payload["email_verified"] = False
+        if "org" in scopes:
+            if user.company_id:
+                payload["company_id"] = user.company_id.id
+                payload["company_name"] = user.company_id.name
+            if user.partner_id:
+                payload["partner_id"] = user.partner_id.id
 
         return _json_response(payload)

@@ -12,4 +12,8 @@
         <field name="name">email</field>
         <field name="description">Access to user email attributes.</field>
     </record>
+    <record id="auth_oidc_scope_org" model="auth_oidc.scope">
+        <field name="name">org</field>
+        <field name="description">Include company/partner identifiers in ID Token and Userinfo.</field>
+    </record>
 </odoo>
