@@ -80,11 +80,19 @@
                                 modifiers='{"invisible": [["id", "=", false]]}'>
                             <div>Remove Existing Authentication</div>
                         </button>
+                        <button name="action_show_secret"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-eye"
+                                modifiers='{"invisible": [["id", "=", false]]}'>
+                            <div>Show Secret</div>
+                        </button>
                     </div>
                     <group>
                         <field name="name"/>
                         <field name="client_id"/>
-                        <field name="client_secret" password="True" groups="base.group_system"/>
+                        <field name="client_secret" password="True" groups="base.group_system"
+                               modifiers='{"required": [["is_confidential", "=", true]]}'/>
                         <button name="action_generate_secret" type="object" string="Generate Secret" class="btn-secondary" groups="base.group_system"/>
                         <field name="is_confidential"/>
                         <field name="active"/>

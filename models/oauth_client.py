@@ -1,4 +1,5 @@
-from odoo import api, fields, models
+from odoo import api, fields, models, _
+from odoo.exceptions import ValidationError
 import secrets
 
 
@@ -8,7 +9,7 @@ class OAuthClient(models.Model):
 
     name = fields.Char(required=True)
     client_id = fields.Char(required=True, index=True)
-    client_secret = fields.Char(required=True, groups="base.group_system")
+    client_secret = fields.Char(groups="base.group_system", copy=False)
     redirect_uris = fields.Text(
         help="One redirect URI per line (exact match).",
     )
@@ -32,9 +33,22 @@ class OAuthClient(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
-            if not vals.get("client_secret"):
+            if vals.get("is_confidential", True) and not vals.get("client_secret"):
                 vals["client_secret"] = secrets.token_urlsafe(32)
         return super().create(vals_list)
+
+    def write(self, vals):
+        res = super().write(vals)
+        for client in self:
+            if client.is_confidential and not client.client_secret:
+                client.client_secret = secrets.token_urlsafe(32)
+        return res
+
+    @api.constrains("is_confidential", "client_secret")
+    def _check_confidential_secret(self):
+        for client in self:
+            if client.is_confidential and not client.client_secret:
+                raise ValidationError(_("Confidential clients must have a client secret."))
 
     @api.model
     def get_by_client_id(self, client_id):
@@ -62,7 +76,29 @@ class OAuthClient(models.Model):
     def action_generate_secret(self):
         self.ensure_one()
         self.client_secret = secrets.token_urlsafe(32)
-        return True
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("New client secret generated"),
+                "message": self.client_secret,
+                "sticky": False,
+                "type": "warning",
+            },
+        }
+
+    def action_show_secret(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("Client secret"),
+                "message": self.client_secret or _("No secret set"),
+                "sticky": False,
+                "type": "success",
+            },
+        }
 
     def action_revoke_authorizations(self):
         """Remove all tokens, auth codes, and consents for this client."""
