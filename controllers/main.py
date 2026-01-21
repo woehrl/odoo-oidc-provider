@@ -321,6 +321,8 @@ class OidcController(http.Controller):
             "auth_time": int(fields.Datetime.now().timestamp()),
             "azp": client.client_id,
         }
+        partner = user.partner_id
+        commercial_partner = partner.commercial_partner_id if partner else False
         if nonce:
             claims["nonce"] = nonce
         if "email" in scope_names and user.email:
@@ -329,23 +331,29 @@ class OidcController(http.Controller):
         if "profile" in scope_names:
             claims["name"] = user.name
         if "org" in scope_names:
-            if user.company_id:
-                claims["company_id"] = user.company_id.id
-                claims["company_name"] = user.company_id.name
-                if user.company_id.vat:
-                    claims["company_vat"] = user.company_id.vat
-                if user.company_id.country_id:
-                    claims["company_country"] = user.company_id.country_id.code or user.company_id.country_id.name
-                if user.company_id.city:
-                    claims["company_city"] = user.company_id.city
-                if user.company_id.street:
-                    claims["company_street"] = user.company_id.street
-                if user.company_id.phone:
-                    claims["company_phone"] = user.company_id.phone
-            if user.partner_id:
-                claims["partner_id"] = user.partner_id.id
-                if user.partner_id.ref:
-                    claims["partner_ref"] = user.partner_id.ref
+            if commercial_partner:
+                claims["company_id"] = commercial_partner.id
+                claims["company_name"] = commercial_partner.name
+                if commercial_partner.vat:
+                    claims["company_vat"] = commercial_partner.vat
+                if commercial_partner.company_registry:
+                    claims["company_registry"] = commercial_partner.company_registry
+                if commercial_partner.country_id:
+                    claims["company_country"] = commercial_partner.country_id.code or commercial_partner.country_id.name
+                if commercial_partner.city:
+                    claims["company_city"] = commercial_partner.city
+                if commercial_partner.zip:
+                    claims["company_zip"] = commercial_partner.zip
+                if commercial_partner.street:
+                    claims["company_street"] = commercial_partner.street
+                if commercial_partner.street2:
+                    claims["company_street2"] = commercial_partner.street2
+                if commercial_partner.phone:
+                    claims["company_phone"] = commercial_partner.phone
+            if partner:
+                claims["partner_id"] = partner.id
+                if partner.ref:
+                    claims["partner_ref"] = partner.ref
         if "groups" in scope_names:
             group_names = user.groups_id.mapped("display_name")
             if group_names:
@@ -354,24 +362,27 @@ class OidcController(http.Controller):
             role = user.groups_id[:1].display_name if user.groups_id else None
             if role:
                 claims["role"] = role
-        if "address" in scope_names and user.partner_id:
-            partner = user.partner_id
-            if partner.street:
-                claims["street"] = partner.street
-            if partner.street2:
-                claims["street2"] = partner.street2
-            if partner.city:
-                claims["city"] = partner.city
-            if partner.zip:
-                claims["zip"] = partner.zip
-            if partner.state_id:
-                claims["state"] = partner.state_id.code or partner.state_id.name
-            if partner.country_id:
-                claims["country"] = partner.country_id.code or partner.country_id.name
+        if "address" in scope_names and commercial_partner:
+            if commercial_partner.street:
+                claims["street"] = commercial_partner.street
+            if commercial_partner.street2:
+                claims["street2"] = commercial_partner.street2
+            if commercial_partner.city:
+                claims["city"] = commercial_partner.city
+            if commercial_partner.zip:
+                claims["zip"] = commercial_partner.zip
+            if commercial_partner.state_id:
+                claims["state"] = commercial_partner.state_id.code or commercial_partner.state_id.name
+            if commercial_partner.country_id:
+                claims["country"] = commercial_partner.country_id.code or commercial_partner.country_id.name
         if "phone" in scope_names:
-            if user.phone:
+            if commercial_partner and commercial_partner.phone:
+                claims["phone"] = commercial_partner.phone
+            elif user.phone:
                 claims["phone"] = user.phone
-            if user.mobile:
+            if commercial_partner and commercial_partner.mobile:
+                claims["mobile"] = commercial_partner.mobile
+            elif user.mobile:
                 claims["mobile"] = user.mobile
         if "preferences" in scope_names:
             if user.lang:
@@ -594,24 +605,32 @@ class OidcController(http.Controller):
         if "email" in scopes:
             payload["email"] = user.email or user.login
             payload["email_verified"] = False
+        partner = user.partner_id
+        commercial_partner = partner.commercial_partner_id if partner else False
         if "org" in scopes:
-            if user.company_id:
-                payload["company_id"] = user.company_id.id
-                payload["company_name"] = user.company_id.name
-                if user.company_id.vat:
-                    payload["company_vat"] = user.company_id.vat
-                if user.company_id.country_id:
-                    payload["company_country"] = user.company_id.country_id.code or user.company_id.country_id.name
-                if user.company_id.city:
-                    payload["company_city"] = user.company_id.city
-                if user.company_id.street:
-                    payload["company_street"] = user.company_id.street
-                if user.company_id.phone:
-                    payload["company_phone"] = user.company_id.phone
-            if user.partner_id:
-                payload["partner_id"] = user.partner_id.id
-                if user.partner_id.ref:
-                    payload["partner_ref"] = user.partner_id.ref
+            if commercial_partner:
+                payload["company_id"] = commercial_partner.id
+                payload["company_name"] = commercial_partner.name
+                if commercial_partner.vat:
+                    payload["company_vat"] = commercial_partner.vat
+                if commercial_partner.company_registry:
+                    payload["company_registry"] = commercial_partner.company_registry
+                if commercial_partner.country_id:
+                    payload["company_country"] = commercial_partner.country_id.code or commercial_partner.country_id.name
+                if commercial_partner.city:
+                    payload["company_city"] = commercial_partner.city
+                if commercial_partner.zip:
+                    payload["company_zip"] = commercial_partner.zip
+                if commercial_partner.street:
+                    payload["company_street"] = commercial_partner.street
+                if commercial_partner.street2:
+                    payload["company_street2"] = commercial_partner.street2
+                if commercial_partner.phone:
+                    payload["company_phone"] = commercial_partner.phone
+            if partner:
+                payload["partner_id"] = partner.id
+                if partner.ref:
+                    payload["partner_ref"] = partner.ref
         if "groups" in scopes:
             group_names = user.groups_id.mapped("display_name")
             if group_names:
@@ -620,24 +639,27 @@ class OidcController(http.Controller):
             role = user.groups_id[:1].display_name if user.groups_id else None
             if role:
                 payload["role"] = role
-        if "address" in scopes and user.partner_id:
-            partner = user.partner_id
-            if partner.street:
-                payload["street"] = partner.street
-            if partner.street2:
-                payload["street2"] = partner.street2
-            if partner.city:
-                payload["city"] = partner.city
-            if partner.zip:
-                payload["zip"] = partner.zip
-            if partner.state_id:
-                payload["state"] = partner.state_id.code or partner.state_id.name
-            if partner.country_id:
-                payload["country"] = partner.country_id.code or partner.country_id.name
+        if "address" in scopes and commercial_partner:
+            if commercial_partner.street:
+                payload["street"] = commercial_partner.street
+            if commercial_partner.street2:
+                payload["street2"] = commercial_partner.street2
+            if commercial_partner.city:
+                payload["city"] = commercial_partner.city
+            if commercial_partner.zip:
+                payload["zip"] = commercial_partner.zip
+            if commercial_partner.state_id:
+                payload["state"] = commercial_partner.state_id.code or commercial_partner.state_id.name
+            if commercial_partner.country_id:
+                payload["country"] = commercial_partner.country_id.code or commercial_partner.country_id.name
         if "phone" in scopes:
-            if user.phone:
+            if commercial_partner and commercial_partner.phone:
+                payload["phone"] = commercial_partner.phone
+            elif user.phone:
                 payload["phone"] = user.phone
-            if user.mobile:
+            if commercial_partner and commercial_partner.mobile:
+                payload["mobile"] = commercial_partner.mobile
+            elif user.mobile:
                 payload["mobile"] = user.mobile
         if "preferences" in scopes:
             if user.lang:
