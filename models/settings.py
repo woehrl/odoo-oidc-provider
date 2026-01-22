@@ -73,7 +73,7 @@ class AuthOidcSettings(models.TransientModel):
         default=60,
         config_parameter="odoo_oidc.rate_limit.revoke.window",
     )
-    consent_css = fields.Text(
+    consent_css = fields.Char(
         string="Consent Page CSS",
         config_parameter="odoo_oidc.consent_css",
         help=(
