@@ -8,7 +8,6 @@ from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 from odoo import http, fields
 from odoo.http import request
 
-
 RATE_LIMIT_DEFAULTS = {
     "authorize": (30, 60),
     "token": (60, 60),
@@ -16,7 +15,6 @@ RATE_LIMIT_DEFAULTS = {
     "introspect": (60, 60),
     "revoke": (60, 60),
 }
-
 
 def _json_response(payload, status=200, headers=None):
     base_headers = {"Content-Type": "application/json"}
@@ -27,6 +25,18 @@ def _json_response(payload, status=200, headers=None):
 
 def _base_url():
     return request.httprequest.host_url.rstrip("/")
+
+
+def _user_type(user):
+    """Return a simple user type label."""
+    # Public user check: Odoo flags the website anonymous user via _is_public().
+    if getattr(user, "_is_public", lambda: False)():
+        return "public"
+    # Portal users are marked by the built-in 'share' boolean.
+    if getattr(user, "share", False):
+        return "portal"
+    # Everything else is an internal user.
+    return "internal"
 
 
 def _rate_limit(bucket, client=None):
@@ -89,10 +99,6 @@ def _require_https():
 
 
 class OidcController(http.Controller):
-    # TODO: Add enforcement hooks (HTTPS, rate limiting, audit logging)
-    # TODO: Harden ID Token (azp/nonce validation, alg selection UI)
-    # TODO: Style consent UI and add rate limiting hooks
-
     @http.route(
         "/.well-known/openid-configuration",
         auth="public",
@@ -330,6 +336,7 @@ class OidcController(http.Controller):
             claims["email_verified"] = False
         if "profile" in scope_names:
             claims["name"] = user.name
+        claims["user_type"] = _user_type(user)
         if "org" in scope_names:
             if commercial_partner:
                 claims["company_id"] = commercial_partner.id
@@ -358,10 +365,6 @@ class OidcController(http.Controller):
             group_names = user.groups_id.mapped("display_name")
             if group_names:
                 claims["groups"] = group_names
-        if "role" in scope_names:
-            role = user.groups_id[:1].display_name if user.groups_id else None
-            if role:
-                claims["role"] = role
         if "address" in scope_names and commercial_partner:
             if commercial_partner.street:
                 claims["street"] = commercial_partner.street
@@ -527,6 +530,8 @@ class OidcController(http.Controller):
         if token and token.client_id == client:
             token.unlink()
             _log_event("token_revoked", "Token revoked", client=client, user=token.user_id)
+        else:
+            _log_event("token_revoke_failed", "No token revoked", client=client, user=None)
         return _json_response({})
 
     @http.route(
@@ -554,11 +559,13 @@ class OidcController(http.Controller):
         hashed = token_model._hash_token(token_value)
         token = token_model.search([("token", "=", hashed)], limit=1)
         if not token or token.client_id != client:
+            _log_event("token_introspection_failed", "Inactive or foreign token", client=client, user=None)
             return _json_response({"active": False})
         active = token.expires_at and fields.Datetime.to_datetime(
             token.expires_at
         ) > datetime.utcnow()
         if not active:
+            _log_event("token_introspection_failed", "Expired token", client=client, user=token.user_id)
             return _json_response({"active": False})
         payload = {
             "active": True,
@@ -592,6 +599,7 @@ class OidcController(http.Controller):
         token_value = auth_header.split(" ", 1)[1]
         token = request.env["auth_oidc.token"].sudo().validate_access_token(token_value)
         if not token:
+            _log_event("userinfo_failed", "Invalid access token", client=None, user=None)
             return _json_response({"error": "invalid_token"}, status=401)
 
         user = token.user_id.sudo()
@@ -607,6 +615,7 @@ class OidcController(http.Controller):
             payload["email_verified"] = False
         partner = user.partner_id
         commercial_partner = partner.commercial_partner_id if partner else False
+        payload["user_type"] = _user_type(user)
         if "org" in scopes:
             if commercial_partner:
                 payload["company_id"] = commercial_partner.id
@@ -635,10 +644,6 @@ class OidcController(http.Controller):
             group_names = user.groups_id.mapped("display_name")
             if group_names:
                 payload["groups"] = group_names
-        if "role" in scopes:
-            role = user.groups_id[:1].display_name if user.groups_id else None
-            if role:
-                payload["role"] = role
         if "address" in scopes and commercial_partner:
             if commercial_partner.street:
                 payload["street"] = commercial_partner.street
@@ -667,6 +672,7 @@ class OidcController(http.Controller):
             if user.tz:
                 payload["tz"] = user.tz
 
+        _log_event("userinfo", "Userinfo fetched", client=token.client_id, user=user)
         return _json_response(payload)
 
     @http.route(
