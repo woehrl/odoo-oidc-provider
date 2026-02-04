@@ -84,7 +84,7 @@
                                 type="object"
                                 class="oe_stat_button"
                                 icon="fa-eye"
-                                modifiers='{"invisible": [["id", "=", false], ["is_confidential", "=", false]]}'>
+                                modifiers='{"invisible": [["|", ["is_confidential", "=", false], ["allow_public_spa", "=", true]], ["id", "=", false]]}'>
                             <div>Show Secret</div>
                         </button>
                     </div>
@@ -93,9 +93,9 @@
                         <field name="client_id"/>
                         <field name="is_confidential" modifiers='{"readonly": [["allow_public_spa", "=", true]]}'/>
                         <field name="client_secret" password="True" groups="base.group_system"
-                               modifiers='{"required": [["is_confidential", "=", true]], "invisible": [["is_confidential", "=", false]]}'/>
+                               modifiers='{"required": [["is_confidential", "=", true], ["allow_public_spa", "=", false]], "invisible": [["|", ["is_confidential", "=", false], ["allow_public_spa", "=", true]]}'/>
                         <button name="action_generate_secret" type="object" string="Generate Secret" class="btn-secondary" groups="base.group_system"
-                                modifiers='{"invisible": [["is_confidential", "=", false]]}'/>
+                                modifiers='{"invisible": [["|", ["is_confidential", "=", false], ["allow_public_spa", "=", true]]}'/>
                         <field name="allow_public_spa"/>
                         <field name="auto_consent"/>
                         <field name="active"/>
