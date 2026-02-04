@@ -203,6 +203,11 @@
                         <field name="allow_all_scopes_when_unset"/>
                         <div class="text-muted">Default-deny unless explicitly enabled.</div>
                     </setting>
+                    <setting id="oidc_consent_css_global" string="Consent Page CSS (global)">
+                        <field name="consent_css" widget="text"
+                               placeholder="/* Example: tweak consent page buttons */&#10;.container { max-width: 640px; }&#10;button.btn-primary { background: #1f6feb; }&#10;button.btn-secondary { background: #6c757d; }"/>
+                        <div class="text-muted">Applied to all consent pages.</div>
+                    </setting>
                     <setting id="oidc_rate_limits" string="Rate Limits">
                         <div class="row">
                             <div class="col-12 col-lg-6">
