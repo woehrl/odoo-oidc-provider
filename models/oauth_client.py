@@ -29,6 +29,11 @@ class OAuthClient(models.Model):
         help="Allow public single-page apps without a client secret (PKCE required).",
         default=False,
     )
+    auto_consent = fields.Boolean(
+        string="Auto-Consent",
+        help="Skip consent screen for this client unless prompt=consent is used.",
+        default=False,
+    )
     is_confidential = fields.Boolean(
         default=True,
         help="Marks whether client secrets are expected and validated.",

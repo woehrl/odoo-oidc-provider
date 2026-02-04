@@ -288,6 +288,8 @@ class OidcController(http.Controller):
             limit=1,
         )
         consent_needed = prompt == "consent" or not consent or not consent.covers_scopes(requested_scopes)
+        if client.auto_consent and prompt != "consent":
+            consent_needed = False
 
         if request.httprequest.method == "GET" and consent_needed:
             scopes = request.env["auth_oidc.scope"].sudo().search(
