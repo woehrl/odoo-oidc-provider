@@ -20,6 +20,10 @@ class OAuthClient(models.Model):
         "scope_id",
         string="Allowed Scopes",
     )
+    consent_css = fields.Text(
+        string="Consent Page CSS",
+        help="Custom CSS injected into the consent page for this client.",
+    )
     allow_public_spa = fields.Boolean(
         string="Allow Public SPA",
         help="Allow public single-page apps without a client secret (PKCE required).",

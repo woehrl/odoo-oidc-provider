@@ -73,15 +73,3 @@ class AuthOidcSettings(models.TransientModel):
         default=60,
         config_parameter="odoo_oidc.rate_limit.revoke.window",
     )
-    consent_css = fields.Char(
-        string="Consent Page CSS",
-        config_parameter="odoo_oidc.consent_css",
-        help=(
-            "Custom CSS injected into the OIDC consent page.\n"
-            "Example:\n"
-            "/* Center the form and style buttons */\n"
-            ".container { max-width: 640px; }\n"
-            "button.btn-primary { background: #1f6feb; }\n"
-            "button.btn-secondary { background: #6c757d; }"
-        ),
-    )

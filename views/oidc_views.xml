@@ -84,23 +84,26 @@
                                 type="object"
                                 class="oe_stat_button"
                                 icon="fa-eye"
-                                modifiers='{"invisible": [["id", "=", false]]}'>
+                                modifiers='{"invisible": [["id", "=", false], ["is_confidential", "=", false]]}'>
                             <div>Show Secret</div>
                         </button>
                     </div>
                     <group>
                         <field name="name"/>
                         <field name="client_id"/>
-                        <field name="client_secret" password="True" groups="base.group_system"
-                               modifiers='{"required": [["is_confidential", "=", true]]}'/>
-                        <button name="action_generate_secret" type="object" string="Generate Secret" class="btn-secondary" groups="base.group_system"/>
-                        <field name="allow_public_spa"/>
                         <field name="is_confidential" modifiers='{"readonly": [["allow_public_spa", "=", true]]}'/>
+                        <field name="client_secret" password="True" groups="base.group_system"
+                               modifiers='{"required": [["is_confidential", "=", true]], "invisible": [["is_confidential", "=", false]]}'/>
+                        <button name="action_generate_secret" type="object" string="Generate Secret" class="btn-secondary" groups="base.group_system"
+                                modifiers='{"invisible": [["is_confidential", "=", false]]}'/>
+                        <field name="allow_public_spa"/>
                         <field name="active"/>
                     </group>
                     <group>
                         <field name="redirect_uris" widget="text" placeholder="https://app.example.com/callback"/>
                         <field name="allowed_scopes" widget="many2many_tags"/>
+                        <field name="consent_css" widget="text"
+                               placeholder="/* Example: tweak consent page buttons */&#10;.container { max-width: 640px; }&#10;button.btn-primary { background: #1f6feb; }&#10;button.btn-secondary { background: #6c757d; }"/>
                     </group>
                 </sheet>
             </form>
@@ -199,11 +202,6 @@
                     <setting id="oidc_allow_all_scopes" string="Allow all scopes when unset (not recommended)">
                         <field name="allow_all_scopes_when_unset"/>
                         <div class="text-muted">Default-deny unless explicitly enabled.</div>
-                    </setting>
-                    <setting id="oidc_consent_css" string="Consent Page CSS">
-                        <field name="consent_css" widget="text"
-                               placeholder="/* Example: tweak consent page buttons */&#10;.container { max-width: 640px; }&#10;button.btn-primary { background: #1f6feb; }&#10;button.btn-secondary { background: #6c757d; }"/>
-                        <div class="text-muted">Optional CSS injected into the consent page; use for styling only.</div>
                     </setting>
                     <setting id="oidc_rate_limits" string="Rate Limits">
                         <div class="row">
