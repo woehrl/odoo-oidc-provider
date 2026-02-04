@@ -39,6 +39,65 @@ def _user_type(user):
     return "internal"
 
 
+def _origin_host(origin):
+    try:
+        parsed = urlparse(origin)
+    except Exception:
+        return None, None
+    if not parsed.scheme or not parsed.netloc:
+        return None, None
+    return parsed.scheme, parsed.netloc.lower()
+
+
+def _base_domain(hostname):
+    # Naive base domain extraction: last two labels (e.g. example.com).
+    # This keeps things simple but may be too broad for multi-part TLDs.
+    parts = hostname.split(".")
+    if len(parts) < 2:
+        return hostname
+    return ".".join(parts[-2:])
+
+
+def _origin_allowed_for_client(origin, client):
+    scheme, origin_host = _origin_host(origin)
+    if not scheme or not origin_host:
+        return False
+    for uri in client._parsed_redirect_uris():
+        parsed = urlparse(uri)
+        if not parsed.scheme or not parsed.netloc:
+            continue
+        # Exact origin match
+        if scheme == parsed.scheme and origin_host == parsed.netloc.lower():
+            return True
+        # Allow any subdomain of the registered base domain (domain.tld)
+        base = _base_domain(parsed.netloc.lower())
+        if origin_host == base or origin_host.endswith("." + base):
+            return True
+    return False
+
+
+def _cors_headers(origin, client=None):
+    if not origin:
+        return {}
+    if client and _origin_allowed_for_client(origin, client):
+        allowed = True
+    else:
+        # Fallback: allow origin if it matches any active client's redirect domain.
+        allowed = False
+        for c in request.env["auth_oidc.client"].sudo().search([("active", "=", True)]):
+            if _origin_allowed_for_client(origin, c):
+                allowed = True
+                break
+    if not allowed:
+        return {}
+    return {
+        "Access-Control-Allow-Origin": origin,
+        "Access-Control-Allow-Credentials": "true",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Authorization, Content-Type",
+    }
+
+
 def _rate_limit(bucket, client=None):
     defaults = RATE_LIMIT_DEFAULTS.get(bucket, (30, 60))
     config = request.env["ir.config_parameter"].sudo()
@@ -416,12 +475,15 @@ class OidcController(http.Controller):
         auth="public",
         type="http",
         csrf=False,
-        methods=["POST"],
+        methods=["POST", "OPTIONS"],
     )
     def token(self, **params):
         https_guard = _require_https()
         if https_guard:
             return https_guard
+        origin = request.httprequest.headers.get("Origin")
+        if request.httprequest.method == "OPTIONS":
+            return http.Response(status=204, headers=_cors_headers(origin))
         rl_guard = _rate_limit("token")
         if rl_guard:
             return rl_guard
@@ -431,7 +493,7 @@ class OidcController(http.Controller):
         code_model = request.env["auth_oidc.authorization_code"].sudo()
         client = self._authenticate_client(params)
         if not client:
-            return _json_response({"error": "invalid_client"}, status=401)
+            return _json_response({"error": "invalid_client"}, status=401, headers=_cors_headers(origin))
 
         if grant_type == "authorization_code":
             code_value = params.get("code")
@@ -445,7 +507,7 @@ class OidcController(http.Controller):
                 or auth_code.redirect_uri != redirect_uri
                 or not auth_code.consume(code_verifier)
             ):
-                return _json_response({"error": "invalid_grant"}, status=400)
+                return _json_response({"error": "invalid_grant"}, status=400, headers=_cors_headers(origin, client))
 
             scope_names = (auth_code.scope or "").split()
             scopes = request.env["auth_oidc.scope"].sudo().search(
@@ -481,7 +543,7 @@ class OidcController(http.Controller):
                 response["id_token_error"] = id_token_error
 
             _log_event("token_issued", "Issued access/refresh tokens", client=client, user=user)
-            return _json_response(response)
+            return _json_response(response, headers=_cors_headers(origin, client))
 
         if grant_type == "refresh_token":
             refresh_token_value = params.get("refresh_token")
@@ -489,7 +551,7 @@ class OidcController(http.Controller):
                 refresh_token_value, client
             )
             if not access:
-                return _json_response({"error": "invalid_grant"}, status=400)
+                return _json_response({"error": "invalid_grant"}, status=400, headers=_cors_headers(origin, client))
             access_token_value = getattr(access, "token_value", None) or access.token
             refresh_token_value = getattr(new_refresh, "token_value", None) if new_refresh else None
             response = {
@@ -501,31 +563,34 @@ class OidcController(http.Controller):
             if new_refresh:
                 response["refresh_token"] = refresh_token_value or new_refresh.token
             _log_event("token_rotated", "Rotated refresh token", client=client, user=access.user_id)
-            return _json_response(response)
+            return _json_response(response, headers=_cors_headers(origin, client))
 
-        return _json_response({"error": "unsupported_grant_type"}, status=400)
+        return _json_response({"error": "unsupported_grant_type"}, status=400, headers=_cors_headers(origin, client))
 
     @http.route(
         "/oauth/revoke",
         auth="public",
         type="http",
         csrf=False,
-        methods=["POST"],
+        methods=["POST", "OPTIONS"],
     )
     def revoke(self, **params):
         https_guard = _require_https()
         if https_guard:
             return https_guard
+        origin = request.httprequest.headers.get("Origin")
+        if request.httprequest.method == "OPTIONS":
+            return http.Response(status=204, headers=_cors_headers(origin))
         rl_guard = _rate_limit("revoke")
         if rl_guard:
             return rl_guard
 
         client = self._authenticate_client(params)
         if not client:
-            return _json_response({"error": "invalid_client"}, status=401)
+            return _json_response({"error": "invalid_client"}, status=401, headers=_cors_headers(origin))
         token_value = params.get("token")
         if not token_value:
-            return _json_response({"error": "invalid_request"}, status=400)
+            return _json_response({"error": "invalid_request"}, status=400, headers=_cors_headers(origin, client))
         token_model = request.env["auth_oidc.token"].sudo()
         hashed = token_model._hash_token(token_value)
         token = token_model.search([("token", "=", hashed)], limit=1)
@@ -534,41 +599,44 @@ class OidcController(http.Controller):
             _log_event("token_revoked", "Token revoked", client=client, user=token.user_id)
         else:
             _log_event("token_revoke_failed", "No token revoked", client=client, user=None)
-        return _json_response({})
+        return _json_response({}, headers=_cors_headers(origin, client))
 
     @http.route(
         "/oauth/introspect",
         auth="public",
         type="http",
         csrf=False,
-        methods=["POST"],
+        methods=["POST", "OPTIONS"],
     )
     def introspect(self, **params):
         https_guard = _require_https()
         if https_guard:
             return https_guard
+        origin = request.httprequest.headers.get("Origin")
+        if request.httprequest.method == "OPTIONS":
+            return http.Response(status=204, headers=_cors_headers(origin))
         rl_guard = _rate_limit("introspect")
         if rl_guard:
             return rl_guard
 
         client = self._authenticate_client(params)
         if not client:
-            return _json_response({"error": "invalid_client"}, status=401)
+            return _json_response({"error": "invalid_client"}, status=401, headers=_cors_headers(origin))
         token_value = params.get("token")
         if not token_value:
-            return _json_response({"error": "invalid_request"}, status=400)
+            return _json_response({"error": "invalid_request"}, status=400, headers=_cors_headers(origin, client))
         token_model = request.env["auth_oidc.token"].sudo()
         hashed = token_model._hash_token(token_value)
         token = token_model.search([("token", "=", hashed)], limit=1)
         if not token or token.client_id != client:
             _log_event("token_introspection_failed", "Inactive or foreign token", client=client, user=None)
-            return _json_response({"active": False})
+            return _json_response({"active": False}, headers=_cors_headers(origin, client))
         active = token.expires_at and fields.Datetime.to_datetime(
             token.expires_at
         ) > datetime.utcnow()
         if not active:
             _log_event("token_introspection_failed", "Expired token", client=client, user=token.user_id)
-            return _json_response({"active": False})
+            return _json_response({"active": False}, headers=_cors_headers(origin, client))
         payload = {
             "active": True,
             "client_id": token.client_id.client_id,
@@ -578,31 +646,35 @@ class OidcController(http.Controller):
             "scope": " ".join(token.scope_ids.mapped("name")),
         }
         _log_event("token_introspected", "Token introspection", client=client, user=token.user_id)
-        return _json_response(payload)
+        return _json_response(payload, headers=_cors_headers(origin, client))
 
     @http.route(
         "/oauth/userinfo",
         auth="public",
         type="http",
         csrf=False,
+        methods=["GET", "OPTIONS"],
     )
     def userinfo(self, **kwargs):
         https_guard = _require_https()
         if https_guard:
             return https_guard
+        origin = request.httprequest.headers.get("Origin")
+        if request.httprequest.method == "OPTIONS":
+            return http.Response(status=204, headers=_cors_headers(origin))
         rl_guard = _rate_limit("userinfo")
         if rl_guard:
             return rl_guard
 
         auth_header = request.httprequest.headers.get("Authorization", "")
         if not auth_header.lower().startswith("bearer "):
-            return _json_response({"error": "invalid_token"}, status=401)
+            return _json_response({"error": "invalid_token"}, status=401, headers=_cors_headers(origin))
 
         token_value = auth_header.split(" ", 1)[1]
         token = request.env["auth_oidc.token"].sudo().validate_access_token(token_value)
         if not token:
             _log_event("userinfo_failed", "Invalid access token", client=None, user=None)
-            return _json_response({"error": "invalid_token"}, status=401)
+            return _json_response({"error": "invalid_token"}, status=401, headers=_cors_headers(origin))
 
         user = token.user_id.sudo()
         scopes = set(token.scope_ids.mapped("name"))
@@ -675,7 +747,7 @@ class OidcController(http.Controller):
                 payload["tz"] = user.tz
 
         _log_event("userinfo", "Userinfo fetched", client=token.client_id, user=user)
-        return _json_response(payload)
+        return _json_response(payload, headers=_cors_headers(origin, token.client_id))
 
     @http.route(
         "/oauth/end_session",
