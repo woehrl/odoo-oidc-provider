@@ -20,6 +20,11 @@ class OAuthClient(models.Model):
         "scope_id",
         string="Allowed Scopes",
     )
+    allow_public_spa = fields.Boolean(
+        string="Allow Public SPA",
+        help="Allow public single-page apps without a client secret (PKCE required).",
+        default=False,
+    )
     is_confidential = fields.Boolean(
         default=True,
         help="Marks whether client secrets are expected and validated.",
@@ -33,20 +38,23 @@ class OAuthClient(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
-            if vals.get("is_confidential", True) and not vals.get("client_secret"):
+            allow_public_spa = vals.get("allow_public_spa", False)
+            if not allow_public_spa and vals.get("is_confidential", True) and not vals.get("client_secret"):
                 vals["client_secret"] = secrets.token_urlsafe(32)
         return super().create(vals_list)
 
     def write(self, vals):
         res = super().write(vals)
         for client in self:
-            if client.is_confidential and not client.client_secret:
+            if not client.allow_public_spa and client.is_confidential and not client.client_secret:
                 client.client_secret = secrets.token_urlsafe(32)
         return res
 
-    @api.constrains("is_confidential", "client_secret")
+    @api.constrains("is_confidential", "client_secret", "allow_public_spa")
     def _check_confidential_secret(self):
         for client in self:
+            if client.allow_public_spa and client.is_confidential:
+                raise ValidationError(_("Public SPA clients cannot be confidential."))
             if client.is_confidential and not client.client_secret:
                 raise ValidationError(_("Confidential clients must have a client secret."))
 

@@ -94,7 +94,8 @@
                         <field name="client_secret" password="True" groups="base.group_system"
                                modifiers='{"required": [["is_confidential", "=", true]]}'/>
                         <button name="action_generate_secret" type="object" string="Generate Secret" class="btn-secondary" groups="base.group_system"/>
-                        <field name="is_confidential"/>
+                        <field name="allow_public_spa"/>
+                        <field name="is_confidential" modifiers='{"readonly": [["allow_public_spa", "=", true]]}'/>
                         <field name="active"/>
                     </group>
                     <group>

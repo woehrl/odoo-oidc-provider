@@ -305,6 +305,8 @@ class OidcController(http.Controller):
             return None
         if not client.is_confidential and client_secret:
             return None
+        if client.allow_public_spa and client_secret:
+            return None
         return client
 
     def _build_id_token(self, client, user, scope_names, nonce, access_token=None):
