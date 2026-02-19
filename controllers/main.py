@@ -93,7 +93,7 @@ def _cors_headers(origin, client=None):
     return {
         "Access-Control-Allow-Origin": origin,
         "Access-Control-Allow-Credentials": "true",
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
         "Access-Control-Allow-Headers": "Authorization, Content-Type",
     }
 
@@ -157,42 +157,121 @@ def _require_https():
     return None
 
 
+def _bool_param(name, default=False):
+    """Retrieve a boolean system parameter from ir.config_parameter."""
+    val = request.env["ir.config_parameter"].sudo().get_param(name)
+    if val is False or val is None:
+        return default
+    return str(val).lower() in ("1", "true", "yes")
+
+
+def _cors_public_headers():
+    """Wildcard CORS headers for public discovery documents (any origin)."""
+    return {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, OPTIONS",
+        "Access-Control-Allow-Headers": "Accept, Content-Type",
+    }
+
+
+def _redirect_error(redirect_uri, error, description=None, state=None):
+    """Redirect to redirect_uri with an OAuth2 error response."""
+    parsed = urlparse(redirect_uri)
+    query = dict(parse_qsl(parsed.query))
+    query["error"] = error
+    if description:
+        query["error_description"] = description
+    if state:
+        query["state"] = state
+    redirect_url = urlunparse((
+        parsed.scheme, parsed.netloc, parsed.path,
+        parsed.params, urlencode(query), parsed.fragment,
+    ))
+    return request.redirect(redirect_url, local=False)
+
+
 class OidcController(http.Controller):
     @http.route(
         "/.well-known/openid-configuration",
         auth="public",
         type="http",
         csrf=False,
+        methods=["GET", "OPTIONS"],
     )
     def openid_configuration(self, **kwargs):
+        # Handle CORS preflight — discovery documents must be reachable from
+        # any origin so browser-based OIDC clients can auto-discover endpoints.
+        if request.httprequest.method == "OPTIONS":
+            return http.Response(status=204, headers=_cors_public_headers())
         https_guard = _require_https()
         if https_guard:
             return https_guard
         base_url = _base_url()
         scope_model = request.env["auth_oidc.scope"].sudo()
         scopes = scope_model.search([("active", "=", True)]).mapped("name")
+        # Reflect actual PKCE methods: if S256-only is enforced, drop plain.
+        pkce_methods = ["S256"]
+        if not _bool_param("odoo_oidc.pkce_require_s256", True):
+            pkce_methods.append("plain")
         config = {
+            # RFC 8414 / OIDC Discovery required fields
             "issuer": base_url,
             "authorization_endpoint": f"{base_url}/oauth/authorize",
             "token_endpoint": f"{base_url}/oauth/token",
+            "jwks_uri": f"{base_url}/.well-known/jwks.json",
+            "response_types_supported": ["code"],
+            "subject_types_supported": ["public"],
+            "id_token_signing_alg_values_supported": ["RS256"],
+            # Recommended / commonly expected fields
             "userinfo_endpoint": f"{base_url}/oauth/userinfo",
             "end_session_endpoint": f"{base_url}/oauth/end_session",
-            "jwks_uri": f"{base_url}/.well-known/jwks.json",
-            "grant_types_supported": ["authorization_code", "refresh_token"],
-            "response_types_supported": ["code"],
+            "revocation_endpoint": f"{base_url}/oauth/revoke",
+            "introspection_endpoint": f"{base_url}/oauth/introspect",
             "scopes_supported": scopes,
-            "code_challenge_methods_supported": ["S256", "plain"],
-            "id_token_signing_alg_values_supported": ["RS256"],
+            "response_modes_supported": ["query"],
+            "grant_types_supported": ["authorization_code", "refresh_token"],
+            "token_endpoint_auth_methods_supported": [
+                "client_secret_basic",
+                "client_secret_post",
+                "none",
+            ],
+            "code_challenge_methods_supported": pkce_methods,
+            "claims_supported": [
+                "sub", "iss", "aud", "iat", "exp", "auth_time", "azp",
+                "nonce", "at_hash", "user_type",
+                # profile
+                "name", "preferred_username",
+                # email
+                "email", "email_verified",
+                # address
+                "street", "street2", "city", "zip", "state", "country",
+                # phone
+                "phone", "mobile",
+                # preferences
+                "lang", "tz",
+                # org
+                "company_id", "company_name", "company_vat",
+                "company_registry", "company_country", "company_city",
+                "company_zip", "company_street", "company_street2",
+                "company_phone", "partner_id", "partner_ref",
+                # groups
+                "groups",
+            ],
         }
-        return _json_response(config)
+        return _json_response(config, headers=_cors_public_headers())
 
     @http.route(
         "/.well-known/jwks.json",
         auth="public",
         type="http",
         csrf=False,
+        methods=["GET", "OPTIONS"],
     )
     def jwks(self, **kwargs):
+        # Handle CORS preflight — JWKS must be reachable from any origin so
+        # clients can validate ID Token signatures in the browser.
+        if request.httprequest.method == "OPTIONS":
+            return http.Response(status=204, headers=_cors_public_headers())
         https_guard = _require_https()
         if https_guard:
             return https_guard
@@ -212,7 +291,7 @@ class OidcController(http.Controller):
             jwk.setdefault("use", key.use)
             jwk.setdefault("alg", key.alg)
             keys.append(jwk)
-        return _json_response({"keys": keys})
+        return _json_response({"keys": keys}, headers=_cors_public_headers())
 
     def _render_consent(self, client, scopes, params):
         return request.render(
@@ -270,17 +349,24 @@ class OidcController(http.Controller):
         if not redirect_target or not client.validate_redirect_uri(redirect_target):
             return _json_response({"error": "invalid_request"}, status=400)
 
+        # From this point redirect_uri is validated; errors must be returned
+        # as redirects per RFC 6749 §4.1.2.1 / OIDC Core §3.1.2.6.
         requested_scopes = self._required_scopes(client, scope)
         scope_str = " ".join(requested_scopes)
 
-        if "openid" in requested_scopes and not nonce:
-            return _json_response({"error": "invalid_request", "error_description": "nonce required for openid"}, status=400)
-
         if not client.is_confidential and not code_challenge:
-            return _json_response({"error": "invalid_request", "error_description": "PKCE required for public clients"}, status=400)
+            return _redirect_error(redirect_target, "invalid_request",
+                                   "PKCE code_challenge required for public clients", state)
 
         if code_challenge_method not in {"S256", "plain"}:
-            return _json_response({"error": "invalid_request", "error_description": "Unsupported PKCE method"}, status=400)
+            return _redirect_error(redirect_target, "invalid_request",
+                                   "Unsupported code_challenge_method", state)
+
+        # Enforce server-side PKCE S256 requirement (configurable).
+        if code_challenge and code_challenge_method == "plain":
+            if _bool_param("odoo_oidc.pkce_require_s256", True):
+                return _redirect_error(redirect_target, "invalid_request",
+                                       "code_challenge_method=plain not allowed; use S256", state)
 
         consent_model = request.env["auth_oidc.consent"].sudo()
         consent = consent_model.search(
@@ -301,7 +387,8 @@ class OidcController(http.Controller):
             decision = params.get("decision")
             if decision != "approve":
                 _log_event("consent_denied", "User denied consent", client=client, user=request.env.user)
-                return _json_response({"error": "access_denied"}, status=400)
+                return _redirect_error(redirect_target, "access_denied",
+                                       "User denied consent", state)
             scopes = request.env["auth_oidc.scope"].sudo().search(
                 [("name", "in", requested_scopes)]
             )
@@ -325,7 +412,7 @@ class OidcController(http.Controller):
             scope=scope_str,
             nonce=nonce,
             code_challenge=code_challenge,
-            code_challenge_method=code_challenge_method or "plain",
+            code_challenge_method=code_challenge_method or "S256",
         )
         _log_event("authorization_code", "Issued authorization code", client=client, user=request.env.user)
 

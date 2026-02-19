@@ -32,6 +32,13 @@ Configuration (post-install)
    - odoo_oidc.allow_all_scopes_when_unset (default False): keep default-deny when a client has no allowed scopes set.
 5. Cron jobs: expired tokens and codes are cleaned up every 30 minutes (see data/cron.xml).
 
+Scopes and Claims
+-----------------
+- Supported scopes and their claims are documented in `docs/scopes.md`.
+- Scope requests are filtered to each client’s Allowed Scopes. If a client has
+  no Allowed Scopes configured, requests are denied unless
+  `odoo_oidc.allow_all_scopes_when_unset` is explicitly enabled.
+
 Hardened rollout checklist
 --------------------------
 - Enforce HTTPS, HSTS, and secure cookies on the reverse proxy; keep `odoo_oidc.require_https` True.
@@ -49,13 +56,27 @@ Admin Dashboard
 
 Endpoints
 ---------
-- Discovery: /.well-known/openid-configuration
+- Discovery: /.well-known/openid-configuration (RFC 8414 / OIDC Discovery)
 - JWKS: /.well-known/jwks.json
 - Authorize: /oauth/authorize (Authorization Code + PKCE)
 - Token: /oauth/token (authorization_code, refresh_token)
 - Userinfo: /oauth/userinfo
-- Revocation: /oauth/revoke
-- Introspection: /oauth/introspect
+- Revocation: /oauth/revoke (RFC 7009)
+- Introspection: /oauth/introspect (RFC 7662)
+- End Session: /oauth/end_session
+
+CORS
+----
+CORS is handled natively by this addon — no changes to odoo.conf are needed.
+
+- ``/.well-known/openid-configuration`` and ``/.well-known/jwks.json`` respond
+  with ``Access-Control-Allow-Origin: *`` so any browser-based OIDC client can
+  fetch the discovery document and validate ID Token signatures.
+- ``/oauth/token``, ``/oauth/userinfo``, ``/oauth/introspect``, and
+  ``/oauth/revoke`` use origin-based CORS: only origins that match a registered
+  client's redirect URI domain are permitted. ``Access-Control-Allow-Credentials: true``
+  is set so Bearer tokens can be sent.
+- All CORS-enabled endpoints handle OPTIONS preflight requests.
 
 Example: React/TypeScript app
 -----------------------------
