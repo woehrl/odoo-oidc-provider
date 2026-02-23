@@ -48,3 +48,35 @@ class OAuthDashboard(models.TransientModel):
             "view_mode": "form",
             "target": "new",
         }
+
+    def action_open_clients(self):
+        return {
+            "type": "ir.actions.act_window",
+            "res_model": "auth_oidc.client",
+            "view_mode": "list,form",
+            "name": "OIDC Clients",
+        }
+
+    def action_open_keys(self):
+        return {
+            "type": "ir.actions.act_window",
+            "res_model": "auth_oidc.key",
+            "view_mode": "list,form",
+            "name": "OIDC Signing Keys",
+        }
+
+    def action_open_scopes(self):
+        return {
+            "type": "ir.actions.act_window",
+            "res_model": "auth_oidc.scope",
+            "view_mode": "list,form",
+            "name": "OIDC Scopes",
+        }
+
+    def action_open_events(self):
+        return {
+            "type": "ir.actions.act_window",
+            "res_model": "auth_oidc.event",
+            "view_mode": "list",
+            "name": "OIDC Events",
+        }

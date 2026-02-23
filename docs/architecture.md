@@ -101,3 +101,37 @@ token's granted scopes. See `docs/scopes.md` for the full claim matrix.
 
 See `docs/scopes.md` for the full claim matrix per scope and the filtering rules
 based on client Allowed Scopes.
+
+## Developer Reference
+
+### Key Files
+
+| File | Responsibility |
+|------|---------------|
+| `controllers/main.py` | All HTTP endpoints; CORS, rate limiting, client auth, PKCE, token issuance |
+| `models/oauth_client.py` | Client registration, secret management, redirect URI validation |
+| `models/oauth_token.py` | Scope and token models; token hashing, TTL management |
+| `models/oauth_authorization.py` | Keys (JWT signing), auth codes (PKCE), consent, and audit events |
+| `models/rate_limit.py` | Sliding-window rate limiting buckets |
+| `models/settings.py` | `res.config.settings` extension for all OIDC parameters |
+| `models/dashboard.py` | Transient admin overview with navigation actions |
+
+### Adding a New Scope with Custom Claims
+
+1. Add a seed record to `data/oauth_scopes.xml`
+2. In `controllers/main.py`, find `_build_id_token()` and add claims under a new `if "my_scope" in scopes:` block
+3. In the `/oauth/userinfo` handler, add the same claims using the same scope check
+4. Update `docs/scopes.md` with the new scope and claim table
+
+### Admin UI
+
+Admin views are in `views/oidc_views.xml`. The consent page template is in
+`views/consent_templates.xml`. Use Odoo 18 view attribute syntax (`invisible=`,
+`required=`, `readonly=` with Python expressions) rather than the deprecated
+`modifiers=` JSON format.
+
+### System Parameters
+
+All OIDC settings are stored as `ir.config_parameter` records, accessed via
+`settings.py` which extends `res.config.settings`. Defaults are applied in
+`get_param()` calls in the controller helper methods.

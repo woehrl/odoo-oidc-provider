@@ -9,34 +9,81 @@
             <t t-if="client.consent_css">
                 <style t-raw="client.consent_css"/>
             </t>
+
             <div class="oe_structure">
-                <div class="container mt32 mb32">
-                    <h2>Authorize application</h2>
-                    <p>
-                        <strong t-esc="client.name"/> requests access with client_id
-                        <code t-esc="client.client_id"/>.
-                    </p>
-                    <t t-if="scopes">
-                        <p>Requested scopes:</p>
-                        <ul>
-                            <t t-foreach="scopes" t-as="scope">
-                                <li><t t-esc="scope.name"/> - <t t-esc="scope.description"/></li>
-                            </t>
-                        </ul>
-                    </t>
-                    <t t-else="">
-                        <p>No explicit scopes requested.</p>
-                    </t>
-                    <form t-att-action="request.httprequest.path" method="post">
-                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
-                        <t t-foreach="params.items()" t-as="item">
-                            <input type="hidden" t-att-name="item[0]" t-att-value="item[1]"/>
-                        </t>
-                        <div class="mt16">
-                            <button type="submit" name="decision" value="approve" class="btn btn-primary">Approve</button>
-                            <button type="submit" name="decision" value="deny" class="btn btn-secondary">Deny</button>
+                <div class="container" style="max-width: 520px; margin-top: 60px; margin-bottom: 60px;">
+                    <div class="card shadow-sm">
+
+                        <!-- Card header -->
+                        <div class="card-header text-center py-3">
+                            <h4 class="mb-0">
+                                <i class="fa fa-lock me-2"/>Authorization Request
+                            </h4>
                         </div>
-                    </form>
+
+                        <!-- Card body -->
+                        <div class="card-body p-4">
+
+                            <!-- Application info -->
+                            <div class="text-center mb-4">
+                                <p class="fs-5 mb-1">
+                                    <strong t-esc="client.name"/>
+                                </p>
+                                <p class="text-muted small mb-0">
+                                    is requesting access to your account
+                                </p>
+                                <p class="text-muted" style="font-size: 0.8rem;">
+                                    Client ID: <code t-esc="client.client_id"/>
+                                </p>
+                            </div>
+
+                            <!-- Scope list -->
+                            <t t-if="scopes">
+                                <p class="fw-semibold mb-2">This application will be able to:</p>
+                                <ul class="list-group list-group-flush mb-4">
+                                    <t t-foreach="scopes" t-as="scope">
+                                        <li class="list-group-item px-0 py-2 d-flex align-items-start border-0 border-bottom">
+                                            <i class="fa fa-check-circle text-success mt-1 me-3" style="flex-shrink: 0;"/>
+                                            <div>
+                                                <span class="fw-semibold" t-esc="scope.name"/>
+                                                <t t-if="scope.description">
+                                                    <span class="text-muted"> — </span>
+                                                    <span class="text-muted" t-esc="scope.description"/>
+                                                </t>
+                                            </div>
+                                        </li>
+                                    </t>
+                                </ul>
+                            </t>
+                            <t t-else="">
+                                <p class="text-muted fst-italic mb-4">No specific permissions requested.</p>
+                            </t>
+
+                            <!-- Consent form -->
+                            <form t-att-action="request.httprequest.path" method="post">
+                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                <t t-foreach="params.items()" t-as="item">
+                                    <input type="hidden" t-att-name="item[0]" t-att-value="item[1]"/>
+                                </t>
+                                <div class="d-flex gap-2">
+                                    <button type="submit" name="decision" value="approve"
+                                            class="btn btn-primary w-100">
+                                        <i class="fa fa-check me-1"/>Allow Access
+                                    </button>
+                                    <button type="submit" name="decision" value="deny"
+                                            class="btn btn-outline-secondary w-100">
+                                        <i class="fa fa-times me-1"/>Deny
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Card footer -->
+                        <div class="card-footer text-muted text-center py-2" style="font-size: 0.8rem;">
+                            Your consent is stored and can be revoked by your administrator.
+                        </div>
+
+                    </div>
                 </div>
             </div>
         </t>

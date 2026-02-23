@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <menuitem id="menu_auth_oidc_root" name="OIDC Provider" parent="base.menu_administration" sequence="50"/>
 
@@ -14,44 +14,107 @@
     <menuitem id="menu_auth_oidc_config" name="Configuration" parent="menu_auth_oidc_root" sequence="10"/>
     <menuitem id="menu_auth_oidc_security" name="Security" parent="menu_auth_oidc_root" sequence="20"/>
 
+    <!-- ═══════════════════════════════════════════════════════════
+         DASHBOARD
+    ═══════════════════════════════════════════════════════════ -->
     <record id="view_auth_oidc_dashboard_form" model="ir.ui.view">
         <field name="name">auth.oidc.dashboard.form</field>
         <field name="model">auth_oidc.dashboard</field>
         <field name="arch" type="xml">
-            <form string="OIDC Dashboard">
+            <form string="OIDC Provider Dashboard">
                 <sheet>
                     <div class="oe_button_box" name="button_box">
+                        <button name="action_open_clients" type="object" class="oe_stat_button" icon="fa-laptop">
+                            <field name="client_count" widget="statinfo" string="Clients"/>
+                        </button>
+                        <button name="action_open_keys" type="object" class="oe_stat_button" icon="fa-key">
+                            <field name="key_count" widget="statinfo" string="Signing Keys"/>
+                        </button>
+                        <button name="action_open_scopes" type="object" class="oe_stat_button" icon="fa-tags">
+                            <field name="scope_count" widget="statinfo" string="Scopes"/>
+                        </button>
+                        <button name="action_open_events" type="object" class="oe_stat_button" icon="fa-history">
+                            <field name="event_count" widget="statinfo" string="Audit Events"/>
+                        </button>
                         <button name="action_open_docs" type="object" class="oe_stat_button" icon="fa-external-link">
-                            <div>Project Repo</div>
+                            <div class="o_stat_text">GitHub Docs</div>
                         </button>
                         <button name="action_refresh" type="object" class="oe_stat_button" icon="fa-refresh">
-                            <div>Refresh</div>
+                            <div class="o_stat_text">Refresh</div>
                         </button>
                     </div>
-                    <group string="Overview">
-                        <field name="client_count" readonly="1"/>
-                        <field name="key_count" readonly="1"/>
-                        <field name="scope_count" readonly="1"/>
-                        <field name="event_count" readonly="1"/>
+
+                    <div class="alert alert-info mt8 mb8" role="alert">
+                        <i class="fa fa-info-circle me-1"/>
+                        <strong>Discovery:</strong>
+                        <code>/.well-known/openid-configuration</code>
+                        &#160;&#160;
+                        <strong>JWKS:</strong>
+                        <code>/.well-known/jwks.json</code>
+                        &#160;&#160;
+                        <strong>Authorize:</strong>
+                        <code>/oauth/authorize</code>
+                        &#160;&#160;
+                        <strong>Token:</strong>
+                        <code>/oauth/token</code>
+                    </div>
+
+                    <group string="Scheduler Status">
+                        <group string="Token Cleanup">
+                            <field name="cron_tokens_active" readonly="1" string="Active"/>
+                            <field name="cron_tokens_next" readonly="1" string="Next Run"/>
+                        </group>
+                        <group string="Code Cleanup">
+                            <field name="cron_codes_active" readonly="1" string="Active"/>
+                            <field name="cron_codes_next" readonly="1" string="Next Run"/>
+                        </group>
                     </group>
-                    <group string="Scheduler">
-                        <field name="cron_tokens_active" readonly="1"/>
-                        <field name="cron_tokens_next" readonly="1"/>
-                        <field name="cron_codes_active" readonly="1"/>
-                        <field name="cron_codes_next" readonly="1"/>
-                    </group>
-                    <group string="Getting started">
-                        <p>1. Create signing keys (RSA recommended) or generate HS keys.</p>
-                        <p>2. Check scopes (openid/profile/email) and extend if needed.</p>
-                        <p>3. Create clients (exact redirect URIs, PKCE for public clients).</p>
-                        <p>4. Test discovery/JWKS/authorize/token/userinfo.</p>
-                        <p>More info: <a href="https://github.com/woehrl/odoo-oidc-provider" target="_blank">GitHub project page</a></p>
+
+                    <group string="Quick Setup Guide">
+                        <div class="col-12 ps-0 pe-0">
+                            <ol class="mb8">
+                                <li class="mb4">
+                                    <strong>Create a Signing Key</strong> —
+                                    Go to <em>Configuration → Keys</em>, click <em>New</em>, then <em>Generate RSA Keypair</em>.
+                                    RS256 with 2048-bit RSA is recommended.
+                                </li>
+                                <li class="mb4">
+                                    <strong>Review Scopes</strong> —
+                                    Go to <em>Configuration → Scopes</em>. Default scopes include
+                                    <code>openid</code>, <code>profile</code>, <code>email</code>, <code>org</code>, <code>groups</code>, and more.
+                                </li>
+                                <li class="mb4">
+                                    <strong>Register a Client</strong> —
+                                    Go to <em>Configuration → Clients</em>, click <em>New</em>.
+                                    Set exact redirect URIs (one per line) and assign allowed scopes.
+                                    Use <em>Allow Public SPA</em> for SPAs/mobile apps (PKCE required, no secret).
+                                </li>
+                                <li class="mb4">
+                                    <strong>Test the Flow</strong> —
+                                    Fetch <code>/.well-known/openid-configuration</code> to confirm the discovery document,
+                                    then run an authorization code flow with your client.
+                                </li>
+                                <li class="mb4">
+                                    <strong>Harden for Production</strong> —
+                                    Enable HTTPS enforcement and review rate limits in
+                                    <em>Configuration → Configuration (Settings)</em>.
+                                </li>
+                            </ol>
+                            <p class="text-muted mb0">
+                                <a href="https://github.com/woehrl/odoo-oidc-provider" target="_blank">
+                                    <i class="fa fa-github me-1"/>GitHub — full documentation, security guide, and scope reference
+                                </a>
+                            </p>
+                        </div>
                     </group>
                 </sheet>
             </form>
         </field>
     </record>
 
+    <!-- ═══════════════════════════════════════════════════════════
+         CLIENTS
+    ═══════════════════════════════════════════════════════════ -->
     <record id="view_auth_oidc_client_tree" model="ir.ui.view">
         <field name="name">auth.oidc.client.tree</field>
         <field name="model">auth_oidc.client</field>
@@ -59,7 +122,9 @@
             <list>
                 <field name="name"/>
                 <field name="client_id"/>
-                <field name="is_confidential"/>
+                <field name="is_confidential" string="Confidential"/>
+                <field name="allow_public_spa" string="Public SPA" optional="show"/>
+                <field name="auto_consent" optional="show"/>
                 <field name="active"/>
             </list>
         </field>
@@ -76,52 +141,117 @@
                                 type="object"
                                 class="oe_stat_button btn-danger"
                                 icon="fa-ban"
-                                confirm="Revoke all tokens, auth codes, and consents for this client?"
-                                modifiers='{"invisible": [["id", "=", false]]}'>
-                            <div>Remove Existing Authentication</div>
+                                confirm="Revoke all tokens, authorization codes, and consents for this client? All active sessions will be terminated immediately."
+                                invisible="not id">
+                            <div class="o_stat_text">Revoke All Sessions</div>
                         </button>
                         <button name="action_show_secret"
                                 type="object"
                                 class="oe_stat_button"
                                 icon="fa-eye"
-                                modifiers='{"invisible": ["|", ["id", "=", false], "|", ["is_confidential", "=", false], ["allow_public_spa", "=", true]]}'>
-                            <div>Show Secret</div>
+                                invisible="not id or not is_confidential or allow_public_spa">
+                            <div class="o_stat_text">Show Secret</div>
                         </button>
                     </div>
+
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="Application Name"/></h1>
+                    </div>
+
                     <group>
-                        <field name="name"/>
-                        <field name="client_id"/>
-                        <field name="is_confidential" modifiers='{"readonly": [["allow_public_spa", "=", true]]}'/>
-                        <field name="client_secret" password="True" groups="base.group_system"
-                               modifiers='{"required": [["is_confidential", "=", true], ["allow_public_spa", "=", false]], "invisible": ["|", ["is_confidential", "=", false], ["allow_public_spa", "=", true]]}'/>
-                        <button name="action_generate_secret" type="object" string="Generate Secret" class="btn-secondary" groups="base.group_system"
-                                modifiers='{"invisible": ["|", ["is_confidential", "=", false], ["allow_public_spa", "=", true]]}'/>
-                        <field name="allow_public_spa"/>
-                        <field name="auto_consent"/>
-                        <field name="active"/>
+                        <group string="Identity">
+                            <field name="client_id"
+                                   help="The public client identifier included in all OAuth2 requests. Must be unique. Can be a human-readable slug (e.g. my-app) or a UUID."
+                                   placeholder="my-app or a UUID"/>
+                            <field name="active"
+                                   help="Inactive clients are rejected at all endpoints. Use this to temporarily disable a client without deleting it."/>
+                        </group>
+                        <group string="Client Type">
+                            <field name="is_confidential"
+                                   readonly="allow_public_spa"
+                                   help="Confidential clients authenticate with a client secret (server-side web apps, backend services). Public clients use PKCE without a secret (SPAs, native/mobile apps)."/>
+                            <field name="allow_public_spa"
+                                   help="Enable for single-page applications or native/mobile apps that cannot securely store a client secret. PKCE is always required for these clients."/>
+                            <field name="auto_consent"
+                                   help="Skip the user consent screen for this client. Suitable for first-party applications where the user implicitly trusts the app. The consent screen is still shown if prompt=consent is requested."/>
+                        </group>
                     </group>
-                    <group>
-                        <field name="redirect_uris" widget="text" placeholder="https://app.example.com/callback"/>
-                        <field name="allowed_scopes" widget="many2many_tags"/>
-                        <field name="consent_css" widget="text"
-                               placeholder="/* Example: tweak consent page buttons */&#10;.container { max-width: 640px; }&#10;button.btn-primary { background: #1f6feb; }&#10;button.btn-secondary { background: #6c757d; }"/>
-                    </group>
+
+                    <notebook>
+                        <page string="Security" name="security">
+                            <group string="Client Authentication" invisible="not is_confidential or allow_public_spa">
+                                <div class="alert alert-warning" role="alert"
+                                     invisible="not is_confidential or allow_public_spa or id">
+                                    <i class="fa fa-exclamation-triangle me-1"/>
+                                    Save the record first — a secret will be auto-generated. You can then view or regenerate it.
+                                </div>
+                                <field name="client_secret" password="True" groups="base.group_system"
+                                       required="is_confidential and not allow_public_spa"
+                                       invisible="not is_confidential or allow_public_spa"
+                                       help="The client secret used to authenticate this client on the token, introspect, and revoke endpoints. Only visible to users with System access. Sent via HTTP Basic auth or as a POST parameter."/>
+                                <button name="action_generate_secret" type="object"
+                                        string="Generate New Secret" class="btn-secondary"
+                                        groups="base.group_system"
+                                        invisible="not is_confidential or allow_public_spa"
+                                        help="Generates a new cryptographically random secret and displays it once. The old secret is immediately invalidated."/>
+                            </group>
+                            <div class="alert alert-info" role="alert" invisible="is_confidential and not allow_public_spa">
+                                <i class="fa fa-info-circle me-1"/>
+                                <strong>Public client</strong> — no client secret is used.
+                                PKCE (<code>code_challenge</code> / <code>code_verifier</code>) is required on every authorization request.
+                                S256 is enforced when <em>PKCE S256 only</em> is enabled in Settings.
+                            </div>
+
+                            <group string="Redirect URIs">
+                                <div class="text-muted mb4">
+                                    Enter one URI per line. Validation is an <strong>exact string match</strong> — no wildcards, no path prefixes.
+                                    Always use HTTPS URIs in production.
+                                </div>
+                                <field name="redirect_uris" widget="text" nolabel="1"
+                                       placeholder="https://app.example.com/callback&#10;https://app.example.com/silent-renew&#10;http://localhost:3000/callback  (dev only)"/>
+                            </group>
+
+                            <group string="Allowed Scopes">
+                                <div class="text-muted mb4">
+                                    Scopes this client may request. Requests for scopes not listed here are silently filtered out.
+                                    If empty, <strong>all scope requests are denied</strong> (unless <em>Allow all scopes when unset</em> is enabled in Settings — not recommended).
+                                </div>
+                                <field name="allowed_scopes" widget="many2many_tags" nolabel="1"/>
+                            </group>
+                        </page>
+
+                        <page string="Consent Page" name="consent_page">
+                            <group>
+                                <div class="text-muted mb8">
+                                    Custom CSS injected into the consent page <strong>for this client only</strong>,
+                                    appended after the global consent CSS configured in Settings.
+                                    Use this to apply client-specific branding or layout adjustments.
+                                </div>
+                                <field name="consent_css" widget="text" nolabel="1"
+                                       placeholder="/* Client-specific consent page styles */&#10;.card { border-color: #0d6efd; }&#10;.card-header { background-color: #0d6efd; }&#10;.btn-primary { background-color: #0d6efd; border-color: #0d6efd; }"/>
+                            </group>
+                        </page>
+                    </notebook>
                 </sheet>
             </form>
         </field>
     </record>
 
+    <!-- ═══════════════════════════════════════════════════════════
+         SIGNING KEYS
+    ═══════════════════════════════════════════════════════════ -->
     <record id="view_auth_oidc_key_tree" model="ir.ui.view">
         <field name="name">auth.oidc.key.tree</field>
         <field name="model">auth_oidc.key</field>
         <field name="arch" type="xml">
             <list>
                 <field name="name"/>
-                <field name="kid"/>
-                <field name="alg"/>
-                <field name="kty"/>
+                <field name="kid" string="Key ID"/>
+                <field name="alg" string="Algorithm"/>
+                <field name="kty" string="Key Type"/>
                 <field name="active"/>
-                <field name="expires_at"/>
+                <field name="expires_at" string="Expires"/>
             </list>
         </field>
     </record>
@@ -130,25 +260,60 @@
         <field name="name">auth.oidc.key.form</field>
         <field name="model">auth_oidc.key</field>
         <field name="arch" type="xml">
-            <form string="OIDC Key">
+            <form string="OIDC Signing Key">
                 <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="Key name (e.g. RSA-2024-01)"/></h1>
+                    </div>
+
                     <group>
-                        <field name="name"/>
-                        <field name="kid"/>
-                        <field name="alg"/>
-                        <field name="kty"/>
-                        <field name="use"/>
-                        <field name="active"/>
-                        <field name="expires_at"/>
+                        <group string="Key Metadata">
+                            <field name="kid" string="Key ID"
+                                   help="Unique key identifier published in the JWKS endpoint. Auto-generated from random bytes if left empty at creation."/>
+                            <field name="alg" string="Algorithm"
+                                   help="Signing algorithm. RS256 (RSA + SHA-256) is recommended — provides asymmetric verification so clients never need the private key."/>
+                            <field name="kty" string="Key Type"/>
+                            <field name="use" string="Usage"/>
+                        </group>
+                        <group string="Lifecycle">
+                            <field name="active"
+                                   help="Only active keys are used for signing new tokens and are included in the JWKS endpoint response. Inactive keys are excluded from JWKS and cannot sign. For zero-downtime rotation: add a new key, then deactivate the old one after existing tokens expire."/>
+                            <field name="expires_at" string="Expires At"
+                                   help="Optional expiry date. Expired keys are skipped during signing but still returned in JWKS so relying parties can verify previously issued tokens. Leave empty for no expiry."/>
+                        </group>
                     </group>
+
                     <notebook>
-                        <page string="Key Data">
-                            <group>
-                                <button name="action_generate_rsa_key" type="object" string="Generate RSA Keypair" class="btn-primary" groups="base.group_system"/>
+                        <page string="Key Material" name="key_material">
+                            <div class="alert alert-info mb16" role="alert">
+                                <i class="fa fa-info-circle me-1"/>
+                                <strong>RSA keypairs can be generated directly here.</strong>
+                                The <strong>Public JWK</strong> is auto-derived from the private key and exposed at
+                                <code>/.well-known/jwks.json</code> — the private key never leaves Odoo.
+                                Access to the private key is restricted to users with System access.
+                            </div>
+
+                            <group string="Private Key" groups="base.group_system">
+                                <button name="action_generate_rsa_key" type="object"
+                                        string="Generate RSA Keypair (2048-bit)"
+                                        class="btn-primary mb8"
+                                        groups="base.group_system"
+                                        help="Generates a new RSA 2048-bit key pair. The private key is stored in Odoo (System access only). The public JWK is immediately derived and will appear in the JWKS endpoint."/>
+                                <field name="private_key_pem" widget="text" nolabel="1"
+                                       groups="base.group_system"
+                                       help="Private key in PEM format (PKCS8, no passphrase). Restricted to System users. Do not share this value."/>
                             </group>
-                            <field name="private_key_pem" widget="text" groups="base.group_system"/>
-                            <field name="public_jwk" widget="text"/>
-                            <label for="private_key_pem" class="o_form_label" string="RSA keypair can be generated here; share only the Public JWK with clients."/>
+
+                            <group string="Public JWK">
+                                <div class="text-muted mb4">
+                                    This JSON object is the public portion of the signing key, exposed at
+                                    <code>/.well-known/jwks.json</code>.
+                                    It is auto-derived from the private key when a keypair is generated.
+                                </div>
+                                <field name="public_jwk" widget="text" nolabel="1"
+                                       help="Public JWK JSON. Auto-populated when a keypair is generated. Share this with relying parties if they need to pre-load the key instead of fetching the JWKS endpoint."/>
+                            </group>
                         </page>
                     </notebook>
                 </sheet>
@@ -156,6 +321,9 @@
         </field>
     </record>
 
+    <!-- ═══════════════════════════════════════════════════════════
+         SCOPES
+    ═══════════════════════════════════════════════════════════ -->
     <record id="view_auth_oidc_scope_tree" model="ir.ui.view">
         <field name="name">auth.oidc.scope.tree</field>
         <field name="model">auth_oidc.scope</field>
@@ -175,15 +343,21 @@
             <form string="OIDC Scope">
                 <sheet>
                     <group>
-                        <field name="name"/>
-                        <field name="description"/>
-                        <field name="active"/>
+                        <field name="name"
+                               help="The scope identifier sent in OAuth2 requests (e.g. openid, profile, email). Must be unique and lowercase."/>
+                        <field name="description"
+                               help="Human-readable description shown to users on the consent page."/>
+                        <field name="active"
+                               help="Inactive scopes cannot be assigned to clients and are excluded from scope filtering."/>
                     </group>
                 </sheet>
             </form>
         </field>
     </record>
 
+    <!-- ═══════════════════════════════════════════════════════════
+         SETTINGS (extends res.config.settings)
+    ═══════════════════════════════════════════════════════════ -->
     <record id="view_auth_oidc_settings" model="ir.ui.view">
         <field name="name">auth_oidc.settings.view.form</field>
         <field name="model">res.config.settings</field>
@@ -194,57 +368,118 @@
                 <block title="OIDC Provider" name="oidc_provider_settings">
                     <setting id="oidc_require_https" string="Require HTTPS">
                         <field name="require_https"/>
-                        <div class="text-muted">Reject non-HTTPS calls to OIDC endpoints.</div>
+                        <div class="text-muted">
+                            Reject requests to OIDC endpoints that do not use HTTPS.
+                            Recommended for production. Requires Odoo to run behind a proxy
+                            that sets <code>X-Forwarded-Proto: https</code> with
+                            <code>proxy_mode = True</code> in <code>odoo.conf</code>.
+                        </div>
                     </setting>
-                    <setting id="oidc_pkce_s256" string="PKCE S256 only">
+                    <setting id="oidc_pkce_s256" string="Require PKCE S256">
                         <field name="pkce_require_s256"/>
-                        <div class="text-muted">Enforce PKCE S256 (forbid plain) on Authorization Code.</div>
+                        <div class="text-muted">
+                            Enforce the <code>S256</code> code challenge method and reject
+                            <code>plain</code> on the authorization endpoint.
+                            Always required for public clients regardless of this setting.
+                        </div>
                     </setting>
-                    <setting id="oidc_allow_all_scopes" string="Allow all scopes when unset (not recommended)">
+                    <setting id="oidc_allow_all_scopes" string="Allow all scopes when unset">
                         <field name="allow_all_scopes_when_unset"/>
-                        <div class="text-muted">Default-deny unless explicitly enabled.</div>
+                        <div class="text-muted">
+                            When a client has no <em>Allowed Scopes</em> configured, grant all
+                            requested scopes instead of denying them. <strong>Not recommended</strong>
+                            — the default-deny behavior is more secure.
+                        </div>
                     </setting>
-                    <setting id="oidc_consent_css_global" string="Consent Page CSS (global)">
+                    <setting id="oidc_consent_css_global" string="Global Consent Page CSS">
                         <field name="consent_css" widget="text"
-                               placeholder="/* Example: tweak consent page buttons */&#10;.container { max-width: 640px; }&#10;button.btn-primary { background: #1f6feb; }&#10;button.btn-secondary { background: #6c757d; }"/>
-                        <div class="text-muted">Applied to all consent pages.</div>
+                               placeholder="/* Applied to every consent page across all clients */&#10;.card { border-radius: 12px; }&#10;.btn-primary { background-color: #714B67; border-color: #714B67; }"/>
+                        <div class="text-muted">
+                            CSS injected into the consent page for all clients.
+                            Per-client CSS (set on each client record) is appended after this.
+                        </div>
                     </setting>
                     <setting id="oidc_rate_limits" string="Rate Limits">
+                        <div class="text-muted mb8">
+                            Per-IP (and optionally per-client) request limits for each endpoint.
+                            Format: <strong>max requests</strong> per <strong>window (seconds)</strong>.
+                            Returns HTTP 429 when exceeded. Use a reverse proxy or WAF for additional protection.
+                        </div>
                         <div class="row">
                             <div class="col-12 col-lg-6">
-                                <label for="rate_limit_authorize_limit" class="o_form_label" string="Authorize"/>
+                                <label for="rate_limit_authorize_limit" class="o_form_label" string="Authorize endpoint"/>
                                 <div class="o_row">
                                     <field name="rate_limit_authorize_limit"/>
+                                    <span class="text-muted">requests per</span>
                                     <field name="rate_limit_authorize_window"/>
+                                    <span class="text-muted">s</span>
                                 </div>
-                                <label for="rate_limit_token_limit" class="o_form_label" string="Token"/>
+                                <label for="rate_limit_token_limit" class="o_form_label" string="Token endpoint"/>
                                 <div class="o_row">
                                     <field name="rate_limit_token_limit"/>
+                                    <span class="text-muted">requests per</span>
                                     <field name="rate_limit_token_window"/>
+                                    <span class="text-muted">s</span>
                                 </div>
-                                <label for="rate_limit_userinfo_limit" class="o_form_label" string="Userinfo"/>
+                                <label for="rate_limit_userinfo_limit" class="o_form_label" string="Userinfo endpoint"/>
                                 <div class="o_row">
                                     <field name="rate_limit_userinfo_limit"/>
+                                    <span class="text-muted">requests per</span>
                                     <field name="rate_limit_userinfo_window"/>
+                                    <span class="text-muted">s</span>
                                 </div>
                             </div>
                             <div class="col-12 col-lg-6">
-                                <label for="rate_limit_introspect_limit" class="o_form_label" string="Introspect"/>
+                                <label for="rate_limit_introspect_limit" class="o_form_label" string="Introspect endpoint"/>
                                 <div class="o_row">
                                     <field name="rate_limit_introspect_limit"/>
+                                    <span class="text-muted">requests per</span>
                                     <field name="rate_limit_introspect_window"/>
+                                    <span class="text-muted">s</span>
                                 </div>
-                                <label for="rate_limit_revoke_limit" class="o_form_label" string="Revoke"/>
+                                <label for="rate_limit_revoke_limit" class="o_form_label" string="Revoke endpoint"/>
                                 <div class="o_row">
                                     <field name="rate_limit_revoke_limit"/>
+                                    <span class="text-muted">requests per</span>
                                     <field name="rate_limit_revoke_window"/>
+                                    <span class="text-muted">s</span>
                                 </div>
                             </div>
                         </div>
-                        <div class="text-muted">Per-endpoint rate limits (limit/window in seconds).</div>
                     </setting>
                 </block>
             </xpath>
+        </field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         EVENTS (Audit Log)
+    ═══════════════════════════════════════════════════════════ -->
+    <record id="view_auth_oidc_event_search" model="ir.ui.view">
+        <field name="name">auth.oidc.event.search</field>
+        <field name="model">auth_oidc.event</field>
+        <field name="arch" type="xml">
+            <search string="OIDC Events">
+                <field name="event_type" string="Event Type"/>
+                <field name="client_id" string="Client"/>
+                <field name="user_id" string="User"/>
+                <field name="ip_address" string="IP Address"/>
+                <filter string="Authorization Codes" name="filter_auth_code"
+                        domain="[('event_type', '=', 'authorization_code')]"/>
+                <filter string="Tokens Issued" name="filter_token_issued"
+                        domain="[('event_type', '=', 'token_issued')]"/>
+                <filter string="Tokens Revoked" name="filter_token_revoked"
+                        domain="[('event_type', 'in', ['token_revoked', 'token_revoke_failed'])]"/>
+                <filter string="Consent Denied" name="filter_consent_denied"
+                        domain="[('event_type', '=', 'consent_denied')]"/>
+                <separator/>
+                <group expand="1" string="Group By">
+                    <filter string="Event Type" name="group_event_type" context="{'group_by': 'event_type'}"/>
+                    <filter string="Client" name="group_client" context="{'group_by': 'client_id'}"/>
+                    <filter string="User" name="group_user" context="{'group_by': 'user_id'}"/>
+                    <filter string="Date" name="group_date" context="{'group_by': 'create_date:day'}"/>
+                </group>
+            </search>
         </field>
     </record>
 
@@ -252,27 +487,65 @@
         <field name="name">auth.oidc.event.tree</field>
         <field name="model">auth_oidc.event</field>
         <field name="arch" type="xml">
-            <list>
-                <field name="create_date"/>
-                <field name="event_type"/>
-                <field name="client_id"/>
-                <field name="user_id"/>
-                <field name="ip_address"/>
-                <field name="user_agent"/>
+            <list default_order="create_date desc" string="OIDC Audit Events">
+                <field name="create_date" string="Timestamp"/>
+                <field name="event_type" string="Event"/>
+                <field name="client_id" string="Client"/>
+                <field name="user_id" string="User"/>
+                <field name="ip_address" string="IP Address"/>
+                <field name="description" optional="show"/>
+                <field name="user_agent" optional="hide" string="User Agent"/>
             </list>
         </field>
     </record>
 
+    <record id="view_auth_oidc_event_form" model="ir.ui.view">
+        <field name="name">auth.oidc.event.form</field>
+        <field name="model">auth_oidc.event</field>
+        <field name="arch" type="xml">
+            <form string="OIDC Audit Event" create="false" edit="false" delete="false">
+                <sheet>
+                    <group>
+                        <group string="Event">
+                            <field name="create_date" string="Timestamp" readonly="1"/>
+                            <field name="event_type" string="Event Type" readonly="1"/>
+                            <field name="description" string="Details" readonly="1"/>
+                        </group>
+                        <group string="Context">
+                            <field name="client_id" string="Client" readonly="1"/>
+                            <field name="user_id" string="User" readonly="1"/>
+                            <field name="ip_address" string="IP Address" readonly="1"/>
+                            <field name="user_agent" string="User Agent" readonly="1"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         ACTIONS
+    ═══════════════════════════════════════════════════════════ -->
     <record id="action_auth_oidc_clients" model="ir.actions.act_window">
         <field name="name">OIDC Clients</field>
         <field name="res_model">auth_oidc.client</field>
         <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Register your first OIDC client</p>
+            <p>Each application that uses Odoo for authentication needs a client record.
+               Set exact redirect URIs and assign the scopes the application is allowed to request.</p>
+        </field>
     </record>
 
     <record id="action_auth_oidc_keys" model="ir.actions.act_window">
-        <field name="name">OIDC Keys</field>
+        <field name="name">OIDC Signing Keys</field>
         <field name="res_model">auth_oidc.key</field>
         <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create a signing key</p>
+            <p>At least one active RSA signing key is required before any ID Tokens can be issued.
+               Use <em>Generate RSA Keypair</em> in the key form to create one.</p>
+        </field>
     </record>
 
     <record id="action_auth_oidc_scopes" model="ir.actions.act_window">
@@ -290,11 +563,19 @@
     </record>
 
     <record id="action_auth_oidc_events" model="ir.actions.act_window">
-        <field name="name">OIDC Events</field>
+        <field name="name">OIDC Audit Events</field>
         <field name="res_model">auth_oidc.event</field>
-        <field name="view_mode">list</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No events recorded yet</p>
+            <p>OIDC operations (token issuance, revocation, consent decisions, etc.)
+               are recorded here with timestamp, client, user, and IP address.</p>
+        </field>
     </record>
 
+    <!-- ═══════════════════════════════════════════════════════════
+         MENU ITEMS
+    ═══════════════════════════════════════════════════════════ -->
     <menuitem id="menu_auth_oidc_clients" name="Clients" parent="menu_auth_oidc_config" action="action_auth_oidc_clients"/>
     <menuitem id="menu_auth_oidc_settings" name="Configuration" parent="menu_auth_oidc_config" action="action_auth_oidc_settings" groups="base.group_system"/>
     <menuitem id="menu_auth_oidc_keys" name="Keys" parent="menu_auth_oidc_config" action="action_auth_oidc_keys" groups="base.group_system"/>
