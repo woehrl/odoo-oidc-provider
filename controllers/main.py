@@ -58,20 +58,49 @@ def _base_domain(hostname):
     return ".".join(parts[-2:])
 
 
+def _strip_port(netloc):
+    """Remove port from netloc, preserving IPv6 bracket notation."""
+    if netloc.startswith("["):
+        end = netloc.find("]")
+        return netloc[: end + 1] if end != -1 else netloc
+    if ":" in netloc:
+        return netloc.rsplit(":", 1)[0]
+    return netloc
+
+
+def _normalize_netloc(scheme, netloc):
+    """Strip default ports (80 for http, 443 for https) so that
+    'https://host:443' and 'https://host' compare equal."""
+    _STANDARD = {"http": "80", "https": "443"}
+    if netloc.startswith("["):
+        return netloc  # IPv6 — leave as-is
+    if ":" in netloc:
+        host, port = netloc.rsplit(":", 1)
+        if _STANDARD.get(scheme) == port:
+            return host
+    return netloc
+
+
 def _origin_allowed_for_client(origin, client):
-    scheme, origin_host = _origin_host(origin)
-    if not scheme or not origin_host:
+    scheme, origin_netloc = _origin_host(origin)
+    if not scheme or not origin_netloc:
         return False
+    origin_norm = _normalize_netloc(scheme, origin_netloc)
     for uri in client._parsed_redirect_uris():
         parsed = urlparse(uri)
         if not parsed.scheme or not parsed.netloc:
             continue
-        # Exact origin match
-        if scheme == parsed.scheme and origin_host == parsed.netloc.lower():
+        redirect_netloc = parsed.netloc.lower()
+        redirect_norm = _normalize_netloc(parsed.scheme, redirect_netloc)
+        # Exact origin match (after normalizing away default ports)
+        if scheme == parsed.scheme and origin_norm == redirect_norm:
             return True
-        # Allow any subdomain of the registered base domain (domain.tld)
-        base = _base_domain(parsed.netloc.lower())
-        if origin_host == base or origin_host.endswith("." + base):
+        # Allow any subdomain of the registered base domain.
+        # Strip port before base-domain extraction so that
+        # 'example.com:3000' does not corrupt the comparison.
+        base = _base_domain(_strip_port(redirect_netloc))
+        origin_hostname = _strip_port(origin_norm)
+        if origin_hostname == base or origin_hostname.endswith("." + base):
             return True
     return False
 
