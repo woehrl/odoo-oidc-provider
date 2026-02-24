@@ -643,14 +643,27 @@ class OidcController(http.Controller):
                 return _json_response({"error": "invalid_grant"}, status=400, headers=_cors_headers(origin, client))
             access_token_value = getattr(access, "token_value", None) or access.token
             refresh_token_value = getattr(new_refresh, "token_value", None) if new_refresh else None
+            scope_names = access.scope_ids.mapped("name")
             response = {
                 "access_token": access_token_value,
                 "token_type": "bearer",
                 "expires_in": 3600,
-                "scope": " ".join(access.scope_ids.mapped("name")),
+                "scope": " ".join(scope_names),
             }
             if new_refresh:
                 response["refresh_token"] = refresh_token_value or new_refresh.token
+            # Per OIDC Core §12.2, return a fresh id_token when openid scope is present
+            if "openid" in scope_names:
+                id_token, id_token_error = self._build_id_token(
+                    client,
+                    access.user_id.sudo(),
+                    scope_names,
+                    access_token=access_token_value,
+                )
+                if id_token:
+                    response["id_token"] = id_token
+                elif id_token_error:
+                    response["id_token_error"] = id_token_error
             _log_event("token_rotated", "Rotated refresh token", client=client, user=access.user_id)
             return _json_response(response, headers=_cors_headers(origin, client))
 
