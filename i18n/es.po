@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-01-01 00:00+0000\n"
-"PO-Revision-Date: 2024-01-01 00:00+0000\n"
+"PO-Revision-Date: 2026-02-24 00:00+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: es\n"
@@ -63,95 +63,14 @@ msgid "Events"
 msgstr "Eventos"
 
 #. module: odoo_oidc_provider
-#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_client_form
-msgid "OIDC Client"
-msgstr "Cliente OIDC"
-
-#. module: odoo_oidc_provider
-#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_key_form
-msgid "OIDC Key"
-msgstr "Clave OIDC"
-
-#. module: odoo_oidc_provider
-#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_scope_form
-msgid "OIDC Scope"
-msgstr "Scope OIDC"
-
-#. module: odoo_oidc_provider
-#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.consent_page
-msgid "Authorize application"
-msgstr "Autorizar aplicación"
-
-#. module: odoo_oidc_provider
-#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.consent_page
-msgid "Requested scopes:"
-msgstr "Scopes solicitados:"
-
-#. module: odoo_oidc_provider
-#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.consent_page
-msgid "No explicit scopes requested."
-msgstr "Ningún scope solicitado."
-
-#. module: odoo_oidc_provider
-#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.consent_page
-msgid "Approve"
-msgstr "Aprobar"
-
-#. module: odoo_oidc_provider
-#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.consent_page
-msgid "Deny"
-msgstr "Rechazar"
-
-#. module: odoo_oidc_provider
-#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_client_form
-msgid "Generate Secret"
-msgstr "Generar secreto"
-
-#. module: odoo_oidc_provider
-#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_key_form
-msgid "Generate HS Key"
-msgstr "Generar clave HS"
-
-#. module: odoo_oidc_provider
-#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_key_form
-msgid ""
-"For RSA, paste PEM + Public JWK manually (TODO: add server-side RSA "
-"generator)."
-msgstr ""
-"Para RSA, pega PEM + JWK público manualmente (TODO: generador RSA en "
-"servidor)."
-
-#. module: odoo_oidc_provider
-#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_dashboard_form
-msgid "Project Repo"
-msgstr "Repositorio del proyecto"
-
-#. module: odoo_oidc_provider
-#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_dashboard_form
-msgid "Refresh"
-msgstr "Actualizar"
-
-#. module: odoo_oidc_provider
-#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_key_form
-msgid "Generate RSA Keypair"
-msgstr "Generar par RSA"
-
-#. module: odoo_oidc_provider
-#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_key_form
-msgid ""
-"RSA keypair can be generated here; share only the Public JWK with clients."
-msgstr ""
-"Genera el par RSA aquí; comparte solo el JWK público con los clientes."
-
-#. module: odoo_oidc_provider
 #: model:ir.actions.act_window,name:odoo_oidc_provider.action_auth_oidc_clients
 msgid "OIDC Clients"
 msgstr "Clientes OIDC"
 
 #. module: odoo_oidc_provider
 #: model:ir.actions.act_window,name:odoo_oidc_provider.action_auth_oidc_keys
-msgid "OIDC Keys"
-msgstr "Claves OIDC"
+msgid "OIDC Signing Keys"
+msgstr "Claves de firma OIDC"
 
 #. module: odoo_oidc_provider
 #: model:ir.actions.act_window,name:odoo_oidc_provider.action_auth_oidc_scopes
@@ -159,6 +78,452 @@ msgid "OIDC Scopes"
 msgstr "Scopes OIDC"
 
 #. module: odoo_oidc_provider
+#: model:ir.actions.act_window,name:odoo_oidc_provider.action_auth_oidc_settings
+msgid "OIDC Settings"
+msgstr "Configuración OIDC"
+
+#. module: odoo_oidc_provider
 #: model:ir.actions.act_window,name:odoo_oidc_provider.action_auth_oidc_events
+msgid "OIDC Audit Events"
+msgstr "Eventos de auditoría OIDC"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_dashboard_form
+msgid "Clients"
+msgstr "Clientes"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_dashboard_form
+msgid "Signing Keys"
+msgstr "Claves de firma"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_dashboard_form
+msgid "Scopes"
+msgstr "Scopes"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_dashboard_form
+msgid "Audit Events"
+msgstr "Eventos de auditoría"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_dashboard_form
+msgid "GitHub Docs"
+msgstr "GitHub Docs"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_dashboard_form
+msgid "Refresh"
+msgstr "Actualizar"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_dashboard_form
+msgid "Scheduler Status"
+msgstr "Estado del programador"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_dashboard_form
+msgid "Token Cleanup"
+msgstr "Limpieza de tokens"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_dashboard_form
+msgid "Active"
+msgstr "Activo"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_dashboard_form
+msgid "Next Run"
+msgstr "Próxima ejecución"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_dashboard_form
+msgid "Code Cleanup"
+msgstr "Limpieza de códigos"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_dashboard_form
+msgid "Quick Setup Guide"
+msgstr "Guía de configuración rápida"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_dashboard_form
+msgid "Create a Signing Key"
+msgstr "Crear una clave de firma"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_dashboard_form
+msgid "Review Scopes"
+msgstr "Revisar los scopes"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_dashboard_form
+msgid "Register a Client"
+msgstr "Registrar un cliente"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_dashboard_form
+msgid "Test the Flow"
+msgstr "Probar el flujo"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_dashboard_form
+msgid "Harden for Production"
+msgstr "Fortalecer para producción"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_dashboard_form
+msgid "GitHub — full documentation, security guide, and scope reference"
+msgstr "GitHub — documentación completa, guía de seguridad y referencia de scopes"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_client_form
+msgid "OIDC Client"
+msgstr "Cliente OIDC"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_client_form
+msgid "Revoke All Sessions"
+msgstr "Revocar todas las sesiones"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_client_form
+msgid "Revoke all tokens, authorization codes, and consents for this client? All active sessions will be terminated immediately."
+msgstr "¿Revocar todos los tokens, códigos de autorización y consentimientos de este cliente? Todas las sesiones activas se terminarán inmediatamente."
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_client_form
+msgid "Show Secret"
+msgstr "Mostrar secreto"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_client_form
+msgid "Application Name"
+msgstr "Nombre de la aplicación"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_client_form
+msgid "Identity"
+msgstr "Identidad"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_client_form
+msgid "Client Type"
+msgstr "Tipo de cliente"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_client_form
+msgid "Client Authentication"
+msgstr "Autenticación del cliente"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_client_form
+msgid "Save the record first — a secret will be auto-generated. You can then view or regenerate it."
+msgstr "Guarde el registro primero — se generará un secreto automáticamente. Luego podrá verlo o regenerarlo."
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_client_form
+msgid "Generate New Secret"
+msgstr "Generar nuevo secreto"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_client_form
+msgid "Public client"
+msgstr "Cliente público"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_client_form
+msgid "Redirect URIs"
+msgstr "URIs de redirección"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_client_form
+msgid "Enter one URI per line. Validation is an exact string match — no wildcards, no path prefixes. Always use HTTPS URIs in production."
+msgstr "Introduzca una URI por línea. La validación es una coincidencia exacta de cadena — sin comodines, sin prefijos de ruta. Utilice siempre URIs HTTPS en producción."
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_client_form
+msgid "Allowed Scopes"
+msgstr "Scopes permitidos"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_client_form
+msgid "Scopes this client may request. Requests for scopes not listed here are silently filtered out. If empty, all scope requests are denied (unless Allow all scopes when unset is enabled in Settings — not recommended)."
+msgstr "Scopes que este cliente puede solicitar. Las solicitudes de scopes no listados se filtran silenciosamente. Si está vacío, todas las solicitudes de scope son denegadas (a menos que Permitir todos los scopes si no configurado esté habilitado en la Configuración — no recomendado)."
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_client_form
+msgid "Consent Page"
+msgstr "Página de consentimiento"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_key_form
+msgid "OIDC Signing Key"
+msgstr "Clave de firma OIDC"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_key_form
+msgid "Key Metadata"
+msgstr "Metadatos de la clave"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_key_form
+msgid "Lifecycle"
+msgstr "Ciclo de vida"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_key_form
+msgid "Key Material"
+msgstr "Material de la clave"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_key_form
+msgid "RSA keypairs can be generated directly here."
+msgstr "Los pares de claves RSA se pueden generar directamente aquí."
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_key_form
+msgid "Private Key"
+msgstr "Clave privada"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_key_form
+msgid "Generate RSA Keypair (2048-bit)"
+msgstr "Generar par RSA (2048 bits)"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_key_form
+msgid "Public JWK"
+msgstr "JWK público"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_scope_form
+msgid "OIDC Scope"
+msgstr "Scope OIDC"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_settings
+msgid "Require HTTPS"
+msgstr "Requerir HTTPS"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_settings
+msgid "Require PKCE S256"
+msgstr "Requerir PKCE S256"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_settings
+msgid "Allow all scopes when unset"
+msgstr "Permitir todos los scopes si no configurado"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_settings
+msgid "Global Consent Page CSS"
+msgstr "CSS global de la página de consentimiento"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_settings
+msgid "Rate Limits"
+msgstr "Límites de velocidad"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_settings
+msgid "Authorize endpoint"
+msgstr "Punto de autorización"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_settings
+msgid "Token endpoint"
+msgstr "Punto de token"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_settings
+msgid "Userinfo endpoint"
+msgstr "Punto de información de usuario"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_settings
+msgid "Introspect endpoint"
+msgstr "Punto de introspección"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_settings
+msgid "Revoke endpoint"
+msgstr "Punto de revocación"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_settings
+msgid "requests per"
+msgstr "solicitudes por"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_search
 msgid "OIDC Events"
 msgstr "Eventos OIDC"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_search
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_tree
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_form
+msgid "Event Type"
+msgstr "Tipo de evento"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_search
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_tree
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_form
+msgid "Client"
+msgstr "Cliente"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_search
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_tree
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_form
+msgid "User"
+msgstr "Usuario"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_search
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_tree
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_form
+msgid "IP Address"
+msgstr "Dirección IP"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_search
+msgid "Authorization Codes"
+msgstr "Códigos de autorización"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_search
+msgid "Tokens Issued"
+msgstr "Tokens emitidos"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_search
+msgid "Tokens Revoked"
+msgstr "Tokens revocados"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_search
+msgid "Consent Denied"
+msgstr "Consentimiento denegado"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_search
+msgid "Group By"
+msgstr "Agrupar por"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_search
+msgid "Date"
+msgstr "Fecha"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_tree
+msgid "OIDC Audit Events"
+msgstr "Eventos de auditoría OIDC"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_tree
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_form
+msgid "Timestamp"
+msgstr "Marca de tiempo"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_tree
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_form
+msgid "Event"
+msgstr "Evento"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_tree
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_form
+msgid "User Agent"
+msgstr "Agente de usuario"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_form
+msgid "OIDC Audit Event"
+msgstr "Evento de auditoría OIDC"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_form
+msgid "Details"
+msgstr "Detalles"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_form
+msgid "Context"
+msgstr "Contexto"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.action_auth_oidc_clients
+msgid "Register your first OIDC client"
+msgstr "Registre su primer cliente OIDC"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.action_auth_oidc_clients
+msgid "Each application that uses Odoo for authentication needs a client record. Set exact redirect URIs and assign the scopes the application is allowed to request."
+msgstr "Cada aplicación que utiliza Odoo para la autenticación necesita un registro de cliente. Establezca URIs de redirección exactas y asigne los scopes que la aplicación puede solicitar."
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.action_auth_oidc_keys
+msgid "Create a signing key"
+msgstr "Cree una clave de firma"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.action_auth_oidc_keys
+msgid "At least one active RSA signing key is required before any ID Tokens can be issued. Use Generate RSA Keypair in the key form to create one."
+msgstr "Se requiere al menos una clave de firma RSA activa antes de que se puedan emitir ID Tokens. Use Generar par RSA en el formulario de clave para crear una."
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.action_auth_oidc_events
+msgid "No events recorded yet"
+msgstr "Aún no hay eventos registrados"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.action_auth_oidc_events
+msgid "OIDC operations (token issuance, revocation, consent decisions, etc.) are recorded here with timestamp, client, user, and IP address."
+msgstr "Las operaciones OIDC (emisión de tokens, revocación, decisiones de consentimiento, etc.) se registran aquí con marca de tiempo, cliente, usuario y dirección IP."
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.consent_page
+msgid "Authorization Request"
+msgstr "Solicitud de autorización"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.consent_page
+msgid "is requesting access to your account"
+msgstr "solicita acceso a su cuenta"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.consent_page
+msgid "Client ID:"
+msgstr "ID de cliente:"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.consent_page
+msgid "This application will be able to:"
+msgstr "Esta aplicación podrá:"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.consent_page
+msgid "No specific permissions requested."
+msgstr "No se han solicitado permisos específicos."
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.consent_page
+msgid "Allow Access"
+msgstr "Permitir acceso"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.consent_page
+msgid "Deny"
+msgstr "Rechazar"
+
+#. module: odoo_oidc_provider
+#: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.consent_page
+msgid "Your consent is stored and can be revoked by your administrator."
+msgstr "Su consentimiento se almacena y puede ser revocado por su administrador."

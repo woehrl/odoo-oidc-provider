@@ -10,520 +10,520 @@ msgstr ""
 "PO-Revision-Date: 2026-02-24 00:00+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
-"Language: fr\n"
+"Language: zh_CN\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
 
 #. module: odoo_oidc_provider
 #: model:ir.ui.menu,name:odoo_oidc_provider.menu_auth_oidc_root
 msgid "OIDC Provider"
-msgstr "Fournisseur OIDC"
+msgstr "OIDC 提供商"
 
 #. module: odoo_oidc_provider
 #: model:ir.actions.act_window,name:odoo_oidc_provider.action_auth_oidc_dashboard
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_dashboard_form
 msgid "OIDC Dashboard"
-msgstr "Tableau de bord OIDC"
+msgstr "OIDC 仪表板"
 
 #. module: odoo_oidc_provider
 #: model:ir.ui.menu,name:odoo_oidc_provider.menu_auth_oidc_dashboard
 msgid "Dashboard"
-msgstr "Tableau de bord"
+msgstr "仪表板"
 
 #. module: odoo_oidc_provider
 #: model:ir.ui.menu,name:odoo_oidc_provider.menu_auth_oidc_config
 msgid "Configuration"
-msgstr "Configuration"
+msgstr "配置"
 
 #. module: odoo_oidc_provider
 #: model:ir.ui.menu,name:odoo_oidc_provider.menu_auth_oidc_security
 msgid "Security"
-msgstr "Sécurité"
+msgstr "安全"
 
 #. module: odoo_oidc_provider
 #: model:ir.ui.menu,name:odoo_oidc_provider.menu_auth_oidc_clients
 msgid "Clients"
-msgstr "Clients"
+msgstr "客户端"
 
 #. module: odoo_oidc_provider
 #: model:ir.ui.menu,name:odoo_oidc_provider.menu_auth_oidc_keys
 msgid "Keys"
-msgstr "Clés"
+msgstr "密钥"
 
 #. module: odoo_oidc_provider
 #: model:ir.ui.menu,name:odoo_oidc_provider.menu_auth_oidc_scopes
 msgid "Scopes"
-msgstr "Scopes"
+msgstr "作用域"
 
 #. module: odoo_oidc_provider
 #: model:ir.ui.menu,name:odoo_oidc_provider.menu_auth_oidc_events
 msgid "Events"
-msgstr "Événements"
+msgstr "事件"
 
 #. module: odoo_oidc_provider
 #: model:ir.actions.act_window,name:odoo_oidc_provider.action_auth_oidc_clients
 msgid "OIDC Clients"
-msgstr "Clients OIDC"
+msgstr "OIDC 客户端"
 
 #. module: odoo_oidc_provider
 #: model:ir.actions.act_window,name:odoo_oidc_provider.action_auth_oidc_keys
 msgid "OIDC Signing Keys"
-msgstr "Clés de signature OIDC"
+msgstr "OIDC 签名密钥"
 
 #. module: odoo_oidc_provider
 #: model:ir.actions.act_window,name:odoo_oidc_provider.action_auth_oidc_scopes
 msgid "OIDC Scopes"
-msgstr "Scopes OIDC"
+msgstr "OIDC 作用域"
 
 #. module: odoo_oidc_provider
 #: model:ir.actions.act_window,name:odoo_oidc_provider.action_auth_oidc_settings
 msgid "OIDC Settings"
-msgstr "Paramètres OIDC"
+msgstr "OIDC 设置"
 
 #. module: odoo_oidc_provider
 #: model:ir.actions.act_window,name:odoo_oidc_provider.action_auth_oidc_events
 msgid "OIDC Audit Events"
-msgstr "Événements d'audit OIDC"
+msgstr "OIDC 审计事件"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_dashboard_form
 msgid "Clients"
-msgstr "Clients"
+msgstr "客户端"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_dashboard_form
 msgid "Signing Keys"
-msgstr "Clés de signature"
+msgstr "签名密钥"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_dashboard_form
 msgid "Scopes"
-msgstr "Scopes"
+msgstr "作用域"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_dashboard_form
 msgid "Audit Events"
-msgstr "Événements d'audit"
+msgstr "审计事件"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_dashboard_form
 msgid "GitHub Docs"
-msgstr "GitHub Docs"
+msgstr "GitHub 文档"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_dashboard_form
 msgid "Refresh"
-msgstr "Actualiser"
+msgstr "刷新"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_dashboard_form
 msgid "Scheduler Status"
-msgstr "État du planificateur"
+msgstr "调度器状态"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_dashboard_form
 msgid "Token Cleanup"
-msgstr "Nettoyage des tokens"
+msgstr "令牌清理"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_dashboard_form
 msgid "Active"
-msgstr "Actif"
+msgstr "启用"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_dashboard_form
 msgid "Next Run"
-msgstr "Prochaine exécution"
+msgstr "下次执行"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_dashboard_form
 msgid "Code Cleanup"
-msgstr "Nettoyage des codes"
+msgstr "授权码清理"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_dashboard_form
 msgid "Quick Setup Guide"
-msgstr "Guide de démarrage rapide"
+msgstr "快速配置指南"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_dashboard_form
 msgid "Create a Signing Key"
-msgstr "Créer une clé de signature"
+msgstr "创建签名密钥"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_dashboard_form
 msgid "Review Scopes"
-msgstr "Vérifier les scopes"
+msgstr "查看作用域"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_dashboard_form
 msgid "Register a Client"
-msgstr "Enregistrer un client"
+msgstr "注册客户端"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_dashboard_form
 msgid "Test the Flow"
-msgstr "Tester le flux"
+msgstr "测试流程"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_dashboard_form
 msgid "Harden for Production"
-msgstr "Durcir pour la production"
+msgstr "生产环境加固"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_dashboard_form
 msgid "GitHub — full documentation, security guide, and scope reference"
-msgstr "GitHub — documentation complète, guide de sécurité et référence des scopes"
+msgstr "GitHub — 完整文档、安全指南及作用域参考"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_client_form
 msgid "OIDC Client"
-msgstr "Client OIDC"
+msgstr "OIDC 客户端"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_client_form
 msgid "Revoke All Sessions"
-msgstr "Révoquer toutes les sessions"
+msgstr "吊销所有会话"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_client_form
 msgid "Revoke all tokens, authorization codes, and consents for this client? All active sessions will be terminated immediately."
-msgstr "Révoquer tous les tokens, codes d'autorisation et consentements pour ce client ? Toutes les sessions actives seront immédiatement terminées."
+msgstr "吊销此客户端的所有令牌、授权码和授权记录？所有活跃会话将立即终止。"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_client_form
 msgid "Show Secret"
-msgstr "Afficher le secret"
+msgstr "显示密钥"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_client_form
 msgid "Application Name"
-msgstr "Nom de l'application"
+msgstr "应用名称"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_client_form
 msgid "Identity"
-msgstr "Identité"
+msgstr "标识"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_client_form
 msgid "Client Type"
-msgstr "Type de client"
+msgstr "客户端类型"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_client_form
 msgid "Client Authentication"
-msgstr "Authentification du client"
+msgstr "客户端认证"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_client_form
 msgid "Save the record first — a secret will be auto-generated. You can then view or regenerate it."
-msgstr "Enregistrez d'abord la fiche — un secret sera généré automatiquement. Vous pourrez ensuite le consulter ou le régénérer."
+msgstr "请先保存记录——系统将自动生成客户端密钥。之后您可以查看或重新生成。"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_client_form
 msgid "Generate New Secret"
-msgstr "Générer un nouveau secret"
+msgstr "生成新密钥"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_client_form
 msgid "Public client"
-msgstr "Client public"
+msgstr "公开客户端"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_client_form
 msgid "Redirect URIs"
-msgstr "URIs de redirection"
+msgstr "重定向 URI"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_client_form
 msgid "Enter one URI per line. Validation is an exact string match — no wildcards, no path prefixes. Always use HTTPS URIs in production."
-msgstr "Entrez une URI par ligne. La validation est une correspondance exacte — pas de jokers, pas de préfixes de chemin. Utilisez toujours des URI HTTPS en production."
+msgstr "每行输入一个 URI。验证方式为精确字符串匹配——不支持通配符和路径前缀。生产环境请始终使用 HTTPS URI。"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_client_form
 msgid "Allowed Scopes"
-msgstr "Scopes autorisés"
+msgstr "允许的作用域"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_client_form
 msgid "Scopes this client may request. Requests for scopes not listed here are silently filtered out. If empty, all scope requests are denied (unless Allow all scopes when unset is enabled in Settings — not recommended)."
-msgstr "Scopes que ce client peut demander. Les demandes de scopes non listés ici sont silencieusement filtrées. Si vide, toutes les demandes de scope sont refusées (sauf si Autoriser tous les scopes si non défini est activé dans les paramètres — déconseillé)."
+msgstr "此客户端可请求的作用域。未列出的作用域请求将被静默过滤。若为空，所有作用域请求将被拒绝（除非在设置中启用了"未设置时允许所有作用域"——不建议）。"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_client_form
 msgid "Consent Page"
-msgstr "Page de consentement"
+msgstr "授权页面"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_key_form
 msgid "OIDC Signing Key"
-msgstr "Clé de signature OIDC"
+msgstr "OIDC 签名密钥"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_key_form
 msgid "Key Metadata"
-msgstr "Métadonnées de la clé"
+msgstr "密钥元数据"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_key_form
 msgid "Lifecycle"
-msgstr "Cycle de vie"
+msgstr "生命周期"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_key_form
 msgid "Key Material"
-msgstr "Matériau de la clé"
+msgstr "密钥材料"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_key_form
 msgid "RSA keypairs can be generated directly here."
-msgstr "Les paires de clés RSA peuvent être générées directement ici."
+msgstr "RSA 密钥对可以直接在此处生成。"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_key_form
 msgid "Private Key"
-msgstr "Clé privée"
+msgstr "私钥"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_key_form
 msgid "Generate RSA Keypair (2048-bit)"
-msgstr "Générer une paire RSA (2048 bits)"
+msgstr "生成 RSA 密钥对（2048 位）"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_key_form
 msgid "Public JWK"
-msgstr "JWK public"
+msgstr "公开 JWK"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_scope_form
 msgid "OIDC Scope"
-msgstr "Scope OIDC"
+msgstr "OIDC 作用域"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_settings
 msgid "Require HTTPS"
-msgstr "Exiger HTTPS"
+msgstr "要求 HTTPS"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_settings
 msgid "Require PKCE S256"
-msgstr "Exiger PKCE S256"
+msgstr "要求 PKCE S256"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_settings
 msgid "Allow all scopes when unset"
-msgstr "Autoriser tous les scopes si non défini"
+msgstr "未设置时允许所有作用域"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_settings
 msgid "Global Consent Page CSS"
-msgstr "CSS global pour la page de consentement"
+msgstr "全局授权页面 CSS"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_settings
 msgid "Rate Limits"
-msgstr "Limites de débit"
+msgstr "频率限制"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_settings
 msgid "Authorize endpoint"
-msgstr "Point de terminaison d'autorisation"
+msgstr "授权端点"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_settings
 msgid "Token endpoint"
-msgstr "Point de terminaison token"
+msgstr "令牌端点"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_settings
 msgid "Userinfo endpoint"
-msgstr "Point de terminaison userinfo"
+msgstr "用户信息端点"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_settings
 msgid "Introspect endpoint"
-msgstr "Point de terminaison d'introspection"
+msgstr "令牌内省端点"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_settings
 msgid "Revoke endpoint"
-msgstr "Point de terminaison de révocation"
+msgstr "令牌吊销端点"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_settings
 msgid "requests per"
-msgstr "requêtes par"
+msgstr "次请求，每"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_search
 msgid "OIDC Events"
-msgstr "Événements OIDC"
+msgstr "OIDC 事件"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_search
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_tree
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_form
 msgid "Event Type"
-msgstr "Type d'événement"
+msgstr "事件类型"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_search
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_tree
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_form
 msgid "Client"
-msgstr "Client"
+msgstr "客户端"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_search
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_tree
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_form
 msgid "User"
-msgstr "Utilisateur"
+msgstr "用户"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_search
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_tree
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_form
 msgid "IP Address"
-msgstr "Adresse IP"
+msgstr "IP 地址"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_search
 msgid "Authorization Codes"
-msgstr "Codes d'autorisation"
+msgstr "授权码"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_search
 msgid "Tokens Issued"
-msgstr "Tokens émis"
+msgstr "已颁发令牌"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_search
 msgid "Tokens Revoked"
-msgstr "Tokens révoqués"
+msgstr "已吊销令牌"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_search
 msgid "Consent Denied"
-msgstr "Consentement refusé"
+msgstr "授权被拒绝"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_search
 msgid "Group By"
-msgstr "Grouper par"
+msgstr "分组"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_search
 msgid "Date"
-msgstr "Date"
+msgstr "日期"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_tree
 msgid "OIDC Audit Events"
-msgstr "Événements d'audit OIDC"
+msgstr "OIDC 审计事件"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_tree
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_form
 msgid "Timestamp"
-msgstr "Horodatage"
+msgstr "时间戳"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_tree
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_form
 msgid "Event"
-msgstr "Événement"
+msgstr "事件"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_tree
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_form
 msgid "User Agent"
-msgstr "Agent utilisateur"
+msgstr "用户代理"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_form
 msgid "OIDC Audit Event"
-msgstr "Événement d'audit OIDC"
+msgstr "OIDC 审计事件详情"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_form
 msgid "Details"
-msgstr "Détails"
+msgstr "详情"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.view_auth_oidc_event_form
 msgid "Context"
-msgstr "Contexte"
+msgstr "上下文"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.action_auth_oidc_clients
 msgid "Register your first OIDC client"
-msgstr "Enregistrez votre premier client OIDC"
+msgstr "注册您的第一个 OIDC 客户端"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.action_auth_oidc_clients
 msgid "Each application that uses Odoo for authentication needs a client record. Set exact redirect URIs and assign the scopes the application is allowed to request."
-msgstr "Chaque application utilisant Odoo pour l'authentification nécessite un enregistrement client. Définissez des URIs de redirection exactes et attribuez les scopes que l'application est autorisée à demander."
+msgstr "每个使用 Odoo 进行身份验证的应用程序都需要一条客户端记录。设置精确的重定向 URI，并分配该应用程序允许请求的作用域。"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.action_auth_oidc_keys
 msgid "Create a signing key"
-msgstr "Créez une clé de signature"
+msgstr "创建签名密钥"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.action_auth_oidc_keys
 msgid "At least one active RSA signing key is required before any ID Tokens can be issued. Use Generate RSA Keypair in the key form to create one."
-msgstr "Au moins une clé de signature RSA active est requise avant qu'un ID Token puisse être émis. Utilisez Générer une paire RSA dans le formulaire de clé pour en créer une."
+msgstr "在颁发任何 ID 令牌之前，至少需要一个有效的 RSA 签名密钥。请在密钥表单中使用"生成 RSA 密钥对"来创建一个。"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.action_auth_oidc_events
 msgid "No events recorded yet"
-msgstr "Aucun événement enregistré"
+msgstr "暂无事件记录"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.action_auth_oidc_events
 msgid "OIDC operations (token issuance, revocation, consent decisions, etc.) are recorded here with timestamp, client, user, and IP address."
-msgstr "Les opérations OIDC (émission de token, révocation, décisions de consentement, etc.) sont enregistrées ici avec l'horodatage, le client, l'utilisateur et l'adresse IP."
+msgstr "OIDC 操作（令牌颁发、吊销、授权决策等）将在此处记录，包含时间戳、客户端、用户和 IP 地址。"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.consent_page
 msgid "Authorization Request"
-msgstr "Demande d'autorisation"
+msgstr "授权请求"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.consent_page
 msgid "is requesting access to your account"
-msgstr "demande l'accès à votre compte"
+msgstr "正在请求访问您的账户"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.consent_page
 msgid "Client ID:"
-msgstr "ID client :"
+msgstr "客户端 ID："
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.consent_page
 msgid "This application will be able to:"
-msgstr "Cette application pourra :"
+msgstr "此应用程序将能够："
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.consent_page
 msgid "No specific permissions requested."
-msgstr "Aucune autorisation spécifique demandée."
+msgstr "未请求特定权限。"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.consent_page
 msgid "Allow Access"
-msgstr "Autoriser l'accès"
+msgstr "允许访问"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.consent_page
 msgid "Deny"
-msgstr "Refuser"
+msgstr "拒绝"
 
 #. module: odoo_oidc_provider
 #: model_terms:ir.ui.view,arch_db:odoo_oidc_provider.consent_page
 msgid "Your consent is stored and can be revoked by your administrator."
-msgstr "Votre consentement est enregistré et peut être révoqué par votre administrateur."
+msgstr "您的授权已记录，可由管理员撤销。"
