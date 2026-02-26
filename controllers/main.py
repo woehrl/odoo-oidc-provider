@@ -1,12 +1,15 @@
 import base64
 import hashlib
 import json
+import logging
 import secrets
 from datetime import datetime, timedelta
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 from odoo import http, fields
 from odoo.http import request
+
+_logger = logging.getLogger(__name__)
 
 RATE_LIMIT_DEFAULTS = {
     "authorize": (30, 60),
@@ -602,101 +605,105 @@ class OidcController(http.Controller):
         origin = request.httprequest.headers.get("Origin")
         if request.httprequest.method == "OPTIONS":
             return http.Response(status=204, headers=_cors_headers(origin))
-        rl_guard = _rate_limit("token")
-        if rl_guard:
-            return rl_guard
+        try:
+            rl_guard = _rate_limit("token")
+            if rl_guard:
+                return rl_guard
 
-        grant_type = params.get("grant_type")
-        token_model = request.env["auth_oidc.token"].sudo()
-        code_model = request.env["auth_oidc.authorization_code"].sudo()
-        client = self._authenticate_client(params)
-        if not client:
-            return _json_response({"error": "invalid_client"}, status=401, headers=_cors_headers(origin))
+            grant_type = params.get("grant_type")
+            token_model = request.env["auth_oidc.token"].sudo()
+            code_model = request.env["auth_oidc.authorization_code"].sudo()
+            client = self._authenticate_client(params)
+            if not client:
+                return _json_response({"error": "invalid_client"}, status=401, headers=_cors_headers(origin))
 
-        if grant_type == "authorization_code":
-            code_value = params.get("code")
-            redirect_uri = params.get("redirect_uri")
-            code_verifier = params.get("code_verifier")
-            auth_code = code_model.search([("code", "=", code_value)], limit=1)
+            if grant_type == "authorization_code":
+                code_value = params.get("code")
+                redirect_uri = params.get("redirect_uri")
+                code_verifier = params.get("code_verifier")
+                auth_code = code_model.search([("code", "=", code_value)], limit=1)
 
-            if (
-                not auth_code
-                or auth_code.client_id != client
-                or auth_code.redirect_uri != redirect_uri
-                or not auth_code.consume(code_verifier)
-            ):
-                return _json_response({"error": "invalid_grant"}, status=400, headers=_cors_headers(origin, client))
+                if (
+                    not auth_code
+                    or auth_code.client_id != client
+                    or auth_code.redirect_uri != redirect_uri
+                    or not auth_code.consume(code_verifier)
+                ):
+                    return _json_response({"error": "invalid_grant"}, status=400, headers=_cors_headers(origin, client))
 
-            scope_names = (auth_code.scope or "").split()
-            scopes = request.env["auth_oidc.scope"].sudo().search(
-                [("name", "in", scope_names)]
-            )
-            user = auth_code.user_id.sudo()
-            access = token_model.create_access_token(client, user, scopes)
-            refresh = token_model.create_refresh_token(client, user, scopes)
-            access_token_value = getattr(access, "token_value", None) or access.token
-            refresh_token_value = getattr(refresh, "token_value", None) or refresh.token
-
-            id_token = None
-            id_token_error = None
-            if "openid" in scope_names:
-                id_token, id_token_error = self._build_id_token(
-                    client,
-                    user,
-                    scope_names,
-                    nonce=auth_code.nonce,
-                    access_token=access_token_value,
+                scope_names = (auth_code.scope or "").split()
+                scopes = request.env["auth_oidc.scope"].sudo().search(
+                    [("name", "in", scope_names)]
                 )
+                user = auth_code.user_id.sudo()
+                access = token_model.create_access_token(client, user, scopes)
+                refresh = token_model.create_refresh_token(client, user, scopes)
+                access_token_value = getattr(access, "token_value", None) or access.token
+                refresh_token_value = getattr(refresh, "token_value", None) or refresh.token
 
-            response = {
-                "access_token": access_token_value,
-                "token_type": "bearer",
-                "expires_in": 3600,
-                "refresh_token": refresh_token_value,
-                "scope": " ".join(scope_names),
-            }
-            if id_token:
-                response["id_token"] = id_token
-            elif id_token_error:
-                response["id_token_error"] = id_token_error
+                id_token = None
+                id_token_error = None
+                if "openid" in scope_names:
+                    id_token, id_token_error = self._build_id_token(
+                        client,
+                        user,
+                        scope_names,
+                        nonce=auth_code.nonce,
+                        access_token=access_token_value,
+                    )
 
-            _log_event("token_issued", "Issued access/refresh tokens", client=client, user=user)
-            return _json_response(response, headers=_cors_headers(origin, client))
-
-        if grant_type == "refresh_token":
-            refresh_token_value = params.get("refresh_token")
-            access, new_refresh = token_model.rotate_refresh_token(
-                refresh_token_value, client
-            )
-            if not access:
-                return _json_response({"error": "invalid_grant"}, status=400, headers=_cors_headers(origin, client))
-            access_token_value = getattr(access, "token_value", None) or access.token
-            refresh_token_value = getattr(new_refresh, "token_value", None) if new_refresh else None
-            scope_names = access.scope_ids.mapped("name")
-            response = {
-                "access_token": access_token_value,
-                "token_type": "bearer",
-                "expires_in": 3600,
-                "scope": " ".join(scope_names),
-            }
-            if new_refresh:
-                response["refresh_token"] = refresh_token_value or new_refresh.token
-            # Per OIDC Core §12.2, return a fresh id_token when openid scope is present
-            if "openid" in scope_names:
-                id_token, id_token_error = self._build_id_token(
-                    client,
-                    access.user_id.sudo(),
-                    scope_names,
-                    access_token=access_token_value,
-                )
+                response = {
+                    "access_token": access_token_value,
+                    "token_type": "bearer",
+                    "expires_in": 3600,
+                    "refresh_token": refresh_token_value,
+                    "scope": " ".join(scope_names),
+                }
                 if id_token:
                     response["id_token"] = id_token
                 elif id_token_error:
                     response["id_token_error"] = id_token_error
-            _log_event("token_rotated", "Rotated refresh token", client=client, user=access.user_id)
-            return _json_response(response, headers=_cors_headers(origin, client))
 
-        return _json_response({"error": "unsupported_grant_type"}, status=400, headers=_cors_headers(origin, client))
+                _log_event("token_issued", "Issued access/refresh tokens", client=client, user=user)
+                return _json_response(response, headers=_cors_headers(origin, client))
+
+            if grant_type == "refresh_token":
+                refresh_token_value = params.get("refresh_token")
+                access, new_refresh = token_model.rotate_refresh_token(
+                    refresh_token_value, client
+                )
+                if not access:
+                    return _json_response({"error": "invalid_grant"}, status=400, headers=_cors_headers(origin, client))
+                access_token_value = getattr(access, "token_value", None) or access.token
+                refresh_token_value = getattr(new_refresh, "token_value", None) if new_refresh else None
+                scope_names = access.scope_ids.mapped("name")
+                response = {
+                    "access_token": access_token_value,
+                    "token_type": "bearer",
+                    "expires_in": 3600,
+                    "scope": " ".join(scope_names),
+                }
+                if new_refresh:
+                    response["refresh_token"] = refresh_token_value or new_refresh.token
+                # Per OIDC Core §12.2, return a fresh id_token when openid scope is present
+                if "openid" in scope_names:
+                    id_token, id_token_error = self._build_id_token(
+                        client,
+                        access.user_id.sudo(),
+                        scope_names,
+                        access_token=access_token_value,
+                    )
+                    if id_token:
+                        response["id_token"] = id_token
+                    elif id_token_error:
+                        response["id_token_error"] = id_token_error
+                _log_event("token_rotated", "Rotated refresh token", client=client, user=access.user_id)
+                return _json_response(response, headers=_cors_headers(origin, client))
+
+            return _json_response({"error": "unsupported_grant_type"}, status=400, headers=_cors_headers(origin, client))
+        except Exception:
+            _logger.exception("Unhandled error in /oauth/token")
+            return _json_response({"error": "server_error"}, status=500, headers=_cors_headers(origin))
 
     @http.route(
         "/oauth/revoke",
@@ -712,25 +719,29 @@ class OidcController(http.Controller):
         origin = request.httprequest.headers.get("Origin")
         if request.httprequest.method == "OPTIONS":
             return http.Response(status=204, headers=_cors_headers(origin))
-        rl_guard = _rate_limit("revoke")
-        if rl_guard:
-            return rl_guard
+        try:
+            rl_guard = _rate_limit("revoke")
+            if rl_guard:
+                return rl_guard
 
-        client = self._authenticate_client(params)
-        if not client:
-            return _json_response({"error": "invalid_client"}, status=401, headers=_cors_headers(origin))
-        token_value = params.get("token")
-        if not token_value:
-            return _json_response({"error": "invalid_request"}, status=400, headers=_cors_headers(origin, client))
-        token_model = request.env["auth_oidc.token"].sudo()
-        hashed = token_model._hash_token(token_value)
-        token = token_model.search([("token", "=", hashed)], limit=1)
-        if token and token.client_id == client:
-            token.unlink()
-            _log_event("token_revoked", "Token revoked", client=client, user=token.user_id)
-        else:
-            _log_event("token_revoke_failed", "No token revoked", client=client, user=None)
-        return _json_response({}, headers=_cors_headers(origin, client))
+            client = self._authenticate_client(params)
+            if not client:
+                return _json_response({"error": "invalid_client"}, status=401, headers=_cors_headers(origin))
+            token_value = params.get("token")
+            if not token_value:
+                return _json_response({"error": "invalid_request"}, status=400, headers=_cors_headers(origin, client))
+            token_model = request.env["auth_oidc.token"].sudo()
+            hashed = token_model._hash_token(token_value)
+            token = token_model.search([("token", "=", hashed)], limit=1)
+            if token and token.client_id == client:
+                token.unlink()
+                _log_event("token_revoked", "Token revoked", client=client, user=token.user_id)
+            else:
+                _log_event("token_revoke_failed", "No token revoked", client=client, user=None)
+            return _json_response({}, headers=_cors_headers(origin, client))
+        except Exception:
+            _logger.exception("Unhandled error in /oauth/revoke")
+            return _json_response({"error": "server_error"}, status=500, headers=_cors_headers(origin))
 
     @http.route(
         "/oauth/introspect",
@@ -746,38 +757,42 @@ class OidcController(http.Controller):
         origin = request.httprequest.headers.get("Origin")
         if request.httprequest.method == "OPTIONS":
             return http.Response(status=204, headers=_cors_headers(origin))
-        rl_guard = _rate_limit("introspect")
-        if rl_guard:
-            return rl_guard
+        try:
+            rl_guard = _rate_limit("introspect")
+            if rl_guard:
+                return rl_guard
 
-        client = self._authenticate_client(params)
-        if not client:
-            return _json_response({"error": "invalid_client"}, status=401, headers=_cors_headers(origin))
-        token_value = params.get("token")
-        if not token_value:
-            return _json_response({"error": "invalid_request"}, status=400, headers=_cors_headers(origin, client))
-        token_model = request.env["auth_oidc.token"].sudo()
-        hashed = token_model._hash_token(token_value)
-        token = token_model.search([("token", "=", hashed)], limit=1)
-        if not token or token.client_id != client:
-            _log_event("token_introspection_failed", "Inactive or foreign token", client=client, user=None)
-            return _json_response({"active": False}, headers=_cors_headers(origin, client))
-        active = token.expires_at and fields.Datetime.to_datetime(
-            token.expires_at
-        ) > datetime.utcnow()
-        if not active:
-            _log_event("token_introspection_failed", "Expired token", client=client, user=token.user_id)
-            return _json_response({"active": False}, headers=_cors_headers(origin, client))
-        payload = {
-            "active": True,
-            "client_id": token.client_id.client_id,
-            "token_type": token.token_type,
-            "exp": int(fields.Datetime.to_datetime(token.expires_at).timestamp()),
-            "sub": str(token.user_id.id),
-            "scope": " ".join(token.scope_ids.mapped("name")),
-        }
-        _log_event("token_introspected", "Token introspection", client=client, user=token.user_id)
-        return _json_response(payload, headers=_cors_headers(origin, client))
+            client = self._authenticate_client(params)
+            if not client:
+                return _json_response({"error": "invalid_client"}, status=401, headers=_cors_headers(origin))
+            token_value = params.get("token")
+            if not token_value:
+                return _json_response({"error": "invalid_request"}, status=400, headers=_cors_headers(origin, client))
+            token_model = request.env["auth_oidc.token"].sudo()
+            hashed = token_model._hash_token(token_value)
+            token = token_model.search([("token", "=", hashed)], limit=1)
+            if not token or token.client_id != client:
+                _log_event("token_introspection_failed", "Inactive or foreign token", client=client, user=None)
+                return _json_response({"active": False}, headers=_cors_headers(origin, client))
+            active = token.expires_at and fields.Datetime.to_datetime(
+                token.expires_at
+            ) > datetime.utcnow()
+            if not active:
+                _log_event("token_introspection_failed", "Expired token", client=client, user=token.user_id)
+                return _json_response({"active": False}, headers=_cors_headers(origin, client))
+            payload = {
+                "active": True,
+                "client_id": token.client_id.client_id,
+                "token_type": token.token_type,
+                "exp": int(fields.Datetime.to_datetime(token.expires_at).timestamp()),
+                "sub": str(token.user_id.id),
+                "scope": " ".join(token.scope_ids.mapped("name")),
+            }
+            _log_event("token_introspected", "Token introspection", client=client, user=token.user_id)
+            return _json_response(payload, headers=_cors_headers(origin, client))
+        except Exception:
+            _logger.exception("Unhandled error in /oauth/introspect")
+            return _json_response({"error": "server_error"}, status=500, headers=_cors_headers(origin))
 
     @http.route(
         "/oauth/userinfo",
@@ -793,92 +808,96 @@ class OidcController(http.Controller):
         origin = request.httprequest.headers.get("Origin")
         if request.httprequest.method == "OPTIONS":
             return http.Response(status=204, headers=_cors_headers(origin))
-        rl_guard = _rate_limit("userinfo")
-        if rl_guard:
-            return rl_guard
+        try:
+            rl_guard = _rate_limit("userinfo")
+            if rl_guard:
+                return rl_guard
 
-        auth_header = request.httprequest.headers.get("Authorization", "")
-        if not auth_header.lower().startswith("bearer "):
-            return _json_response({"error": "invalid_token"}, status=401, headers=_cors_headers(origin))
+            auth_header = request.httprequest.headers.get("Authorization", "")
+            if not auth_header.lower().startswith("bearer "):
+                return _json_response({"error": "invalid_token"}, status=401, headers=_cors_headers(origin))
 
-        token_value = auth_header.split(" ", 1)[1]
-        token = request.env["auth_oidc.token"].sudo().validate_access_token(token_value)
-        if not token:
-            _log_event("userinfo_failed", "Invalid access token", client=None, user=None)
-            return _json_response({"error": "invalid_token"}, status=401, headers=_cors_headers(origin))
+            token_value = auth_header.split(" ", 1)[1]
+            token = request.env["auth_oidc.token"].sudo().validate_access_token(token_value)
+            if not token:
+                _log_event("userinfo_failed", "Invalid access token", client=None, user=None)
+                return _json_response({"error": "invalid_token"}, status=401, headers=_cors_headers(origin))
 
-        user = token.user_id.sudo()
-        scopes = set(token.scope_ids.mapped("name"))
-        payload = {
-            "sub": str(user.id),
-            "preferred_username": user.login,
-        }
-        if "profile" in scopes:
-            payload["name"] = user.name
-        if "email" in scopes:
-            payload["email"] = user.email or user.login
-            payload["email_verified"] = False
-        partner = user.partner_id
-        commercial_partner = partner.commercial_partner_id if partner else False
-        payload["user_type"] = _user_type(user)
-        if "org" in scopes:
-            if commercial_partner:
-                payload["company_id"] = commercial_partner.id
-                payload["company_name"] = commercial_partner.name
-                if commercial_partner.vat:
-                    payload["company_vat"] = commercial_partner.vat
-                if commercial_partner.company_registry:
-                    payload["company_registry"] = commercial_partner.company_registry
-                if commercial_partner.country_id:
-                    payload["company_country"] = commercial_partner.country_id.code or commercial_partner.country_id.name
-                if commercial_partner.city:
-                    payload["company_city"] = commercial_partner.city
-                if commercial_partner.zip:
-                    payload["company_zip"] = commercial_partner.zip
+            user = token.user_id.sudo()
+            scopes = set(token.scope_ids.mapped("name"))
+            payload = {
+                "sub": str(user.id),
+                "preferred_username": user.login,
+            }
+            if "profile" in scopes:
+                payload["name"] = user.name
+            if "email" in scopes:
+                payload["email"] = user.email or user.login
+                payload["email_verified"] = False
+            partner = user.partner_id
+            commercial_partner = partner.commercial_partner_id if partner else False
+            payload["user_type"] = _user_type(user)
+            if "org" in scopes:
+                if commercial_partner:
+                    payload["company_id"] = commercial_partner.id
+                    payload["company_name"] = commercial_partner.name
+                    if commercial_partner.vat:
+                        payload["company_vat"] = commercial_partner.vat
+                    if commercial_partner.company_registry:
+                        payload["company_registry"] = commercial_partner.company_registry
+                    if commercial_partner.country_id:
+                        payload["company_country"] = commercial_partner.country_id.code or commercial_partner.country_id.name
+                    if commercial_partner.city:
+                        payload["company_city"] = commercial_partner.city
+                    if commercial_partner.zip:
+                        payload["company_zip"] = commercial_partner.zip
+                    if commercial_partner.street:
+                        payload["company_street"] = commercial_partner.street
+                    if commercial_partner.street2:
+                        payload["company_street2"] = commercial_partner.street2
+                    if commercial_partner.phone:
+                        payload["company_phone"] = commercial_partner.phone
+                if partner:
+                    payload["partner_id"] = partner.id
+                    if partner.ref:
+                        payload["partner_ref"] = partner.ref
+            if "groups" in scopes:
+                group_names = user.groups_id.mapped("display_name")
+                if group_names:
+                    payload["groups"] = group_names
+            if "address" in scopes and commercial_partner:
                 if commercial_partner.street:
-                    payload["company_street"] = commercial_partner.street
+                    payload["street"] = commercial_partner.street
                 if commercial_partner.street2:
-                    payload["company_street2"] = commercial_partner.street2
-                if commercial_partner.phone:
-                    payload["company_phone"] = commercial_partner.phone
-            if partner:
-                payload["partner_id"] = partner.id
-                if partner.ref:
-                    payload["partner_ref"] = partner.ref
-        if "groups" in scopes:
-            group_names = user.groups_id.mapped("display_name")
-            if group_names:
-                payload["groups"] = group_names
-        if "address" in scopes and commercial_partner:
-            if commercial_partner.street:
-                payload["street"] = commercial_partner.street
-            if commercial_partner.street2:
-                payload["street2"] = commercial_partner.street2
-            if commercial_partner.city:
-                payload["city"] = commercial_partner.city
-            if commercial_partner.zip:
-                payload["zip"] = commercial_partner.zip
-            if commercial_partner.state_id:
-                payload["state"] = commercial_partner.state_id.code or commercial_partner.state_id.name
-            if commercial_partner.country_id:
-                payload["country"] = commercial_partner.country_id.code or commercial_partner.country_id.name
-        if "phone" in scopes:
-            if commercial_partner and commercial_partner.phone:
-                payload["phone"] = commercial_partner.phone
-            elif user.phone:
-                payload["phone"] = user.phone
-            if commercial_partner and commercial_partner.mobile:
-                payload["mobile"] = commercial_partner.mobile
-            elif user.mobile:
-                payload["mobile"] = user.mobile
-        if "preferences" in scopes:
-            if user.lang:
-                payload["lang"] = user.lang
-            if user.tz:
-                payload["tz"] = user.tz
+                    payload["street2"] = commercial_partner.street2
+                if commercial_partner.city:
+                    payload["city"] = commercial_partner.city
+                if commercial_partner.zip:
+                    payload["zip"] = commercial_partner.zip
+                if commercial_partner.state_id:
+                    payload["state"] = commercial_partner.state_id.code or commercial_partner.state_id.name
+                if commercial_partner.country_id:
+                    payload["country"] = commercial_partner.country_id.code or commercial_partner.country_id.name
+            if "phone" in scopes:
+                if commercial_partner and commercial_partner.phone:
+                    payload["phone"] = commercial_partner.phone
+                elif user.phone:
+                    payload["phone"] = user.phone
+                if commercial_partner and commercial_partner.mobile:
+                    payload["mobile"] = commercial_partner.mobile
+                elif user.mobile:
+                    payload["mobile"] = user.mobile
+            if "preferences" in scopes:
+                if user.lang:
+                    payload["lang"] = user.lang
+                if user.tz:
+                    payload["tz"] = user.tz
 
-        _log_event("userinfo", "Userinfo fetched", client=token.client_id, user=user)
-        return _json_response(payload, headers=_cors_headers(origin, token.client_id))
+            _log_event("userinfo", "Userinfo fetched", client=token.client_id, user=user)
+            return _json_response(payload, headers=_cors_headers(origin, token.client_id))
+        except Exception:
+            _logger.exception("Unhandled error in /oauth/userinfo")
+            return _json_response({"error": "server_error"}, status=500, headers=_cors_headers(origin))
 
     @http.route(
         "/oauth/end_session",
