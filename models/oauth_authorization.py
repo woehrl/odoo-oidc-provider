@@ -1,6 +1,8 @@
 ﻿import json
 import logging
+import re
 from datetime import datetime, timedelta
+import hmac
 import secrets
 import hashlib
 import base64
@@ -165,11 +167,21 @@ class OAuthKey(models.Model):
         return True
 
 
+# RFC 7636 §4.1: code_verifier is 43-128 characters from the unreserved set.
+PKCE_VERIFIER_RE = re.compile(r"^[A-Za-z0-9\-._~]{43,128}$")
+
+
 class OAuthAuthorizationCode(models.Model):
     _name = "auth_oidc.authorization_code"
     _description = "OIDC Authorization Code"
 
-    code = fields.Char(required=True, index=True)
+    code = fields.Char(required=True, index=True, help="SHA-256 hash of the code.")
+    code_value = fields.Char(
+        string="Raw Code",
+        compute="_compute_code_value",
+        store=False,
+        help="Raw authorization code, only available in-memory after creation.",
+    )
     client_id = fields.Many2one(
         "auth_oidc.client",
         required=True,
@@ -181,6 +193,11 @@ class OAuthAuthorizationCode(models.Model):
         ondelete="cascade",
     )
     redirect_uri = fields.Char(required=True)
+    redirect_uri_explicit = fields.Boolean(
+        default=True,
+        help="Whether the client sent redirect_uri in the authorization request. "
+        "If so, RFC 6749 §4.1.3 requires the identical value at the token endpoint.",
+    )
     scope = fields.Char(help="Space-delimited scopes.")
     nonce = fields.Char(help="Opaque client-provided nonce for ID Token.")
     code_challenge = fields.Char()
@@ -195,6 +212,16 @@ class OAuthAuthorizationCode(models.Model):
         ("auth_oidc_code_unique", "unique(code)", "Authorization code must be unique."),
     ]
 
+    def _compute_code_value(self):
+        """Expose the raw code via context after creation without persisting it."""
+        code_map = self.env.context.get("code_value_map") or {}
+        for rec in self:
+            rec.code_value = code_map.get(rec.id)
+
+    @staticmethod
+    def _hash_code(code_value):
+        return hashlib.sha256(code_value.encode()).hexdigest()
+
     @api.model
     def create_code(
         self,
@@ -206,17 +233,19 @@ class OAuthAuthorizationCode(models.Model):
         code_challenge=None,
         code_challenge_method="plain",
         lifetime_sec=600,
+        redirect_uri_explicit=True,
     ):
-        code = secrets.token_urlsafe(32)
+        code_value = secrets.token_urlsafe(32)
         expires_at = fields.Datetime.to_string(
             datetime.utcnow() + timedelta(seconds=lifetime_sec)
         )
-        return self.create(
+        record = self.create(
             {
-                "code": code,
+                "code": self._hash_code(code_value),
                 "client_id": client.id,
                 "user_id": user.id,
                 "redirect_uri": redirect_uri,
+                "redirect_uri_explicit": redirect_uri_explicit,
                 "scope": scope,
                 "nonce": nonce,
                 "code_challenge": code_challenge,
@@ -224,6 +253,13 @@ class OAuthAuthorizationCode(models.Model):
                 "expires_at": expires_at,
             }
         )
+        return record.with_context(code_value_map={record.id: code_value})
+
+    @api.model
+    def find_by_code(self, code_value):
+        if not code_value:
+            return self.browse()
+        return self.search([("code", "=", self._hash_code(code_value))], limit=1)
 
     def consume(self, code_verifier=None):
         self.ensure_one()
@@ -232,14 +268,14 @@ class OAuthAuthorizationCode(models.Model):
         if self.expires_at and fields.Datetime.to_datetime(self.expires_at) < datetime.utcnow():
             return False
         if self.code_challenge:
-            if not code_verifier:
+            if not code_verifier or not PKCE_VERIFIER_RE.match(code_verifier):
                 return False
             if self.code_challenge_method == "S256":
                 hashed = hashlib.sha256(code_verifier.encode()).digest()
                 verifier_challenge = _b64url_encode(hashed)
             else:
                 verifier_challenge = code_verifier
-            if verifier_challenge != self.code_challenge:
+            if not hmac.compare_digest(verifier_challenge, self.code_challenge):
                 return False
         self.used = True
         return True

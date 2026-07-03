@@ -212,9 +212,19 @@
                                        placeholder="https://app.example.com/callback&#10;https://app.example.com/silent-renew&#10;http://localhost:3000/callback  (dev only)"/>
                             </group>
 
+                            <group string="Post-Logout Redirect URIs">
+                                <div class="text-muted mb4">
+                                    Targets allowed for <code>post_logout_redirect_uri</code> at the end_session endpoint.
+                                    One URI per line, <strong>exact string match</strong>. If empty, logout never redirects.
+                                </div>
+                                <field name="post_logout_redirect_uris" widget="text" nolabel="1"
+                                       placeholder="https://app.example.com/logged-out"/>
+                            </group>
+
                             <group string="Allowed Scopes">
                                 <div class="text-muted mb4">
-                                    Scopes this client may request. Requests for scopes not listed here are silently filtered out.
+                                    Scopes this client may request. Scopes not listed here are filtered out;
+                                    if nothing remains (or <code>openid</code> itself is filtered) the request is rejected with <code>invalid_scope</code>.
                                     If empty, <strong>all scope requests are denied</strong> (unless <em>Allow all scopes when unset</em> is enabled in Settings — not recommended).
                                 </div>
                                 <field name="allowed_scopes" widget="many2many_tags" nolabel="1"/>

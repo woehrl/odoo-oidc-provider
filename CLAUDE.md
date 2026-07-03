@@ -65,7 +65,7 @@ Odoo 18.0 module (`odoo_oidc_provider`) implementing a full **OpenID Connect (OI
 ## Data Models
 
 ### `auth_oidc.client` — OAuth Applications
-Key fields: `name`, `client_id` (unique, public), `client_secret` (system only, hashed in display), `redirect_uris` (text, one per line, exact match), `allowed_scopes` (m2m → scope), `is_confidential`, `allow_public_spa`, `auto_consent`, `active`, `consent_css`.
+Key fields: `name`, `client_id` (unique, public), `client_secret` (system only, SHA-256 hashed at rest with `sha256$` prefix, shown once at generation; legacy plaintext values migrate on first use via `verify_secret()`), `redirect_uris` (text, one per line, exact match), `post_logout_redirect_uris` (text, one per line, exact match — end_session targets), `allowed_scopes` (m2m → scope), `is_confidential`, `allow_public_spa`, `auto_consent`, `active`, `consent_css`.
 
 Constraint: `is_confidential=True` requires `client_secret`; `allow_public_spa=True` forbids `is_confidential=True`.
 
@@ -73,10 +73,10 @@ Constraint: `is_confidential=True` requires `client_secret`; `allow_public_spa=T
 Fields: `name` (unique), `description`, `active`. Seeded: `openid`, `profile`, `email`, `address`, `phone`, `org`, `groups`, `preferences`.
 
 ### `auth_oidc.token` — Access/Refresh Tokens
-Tokens stored as SHA-256 hashes (`token` field). Raw value available only in-memory via `token_value` computed field (context-injected at creation). Fields: `token_type` (access/refresh), `token` (hash), `client_id`, `user_id`, `expires_at`, `scope_ids`.
+Tokens stored as SHA-256 hashes (`token` field). Raw value available only in-memory via `token_value` computed field (context-injected at creation). Fields: `token_type` (access/refresh), `token` (hash), `client_id`, `user_id`, `expires_at`, `scope_ids`, `auth_code_id` (link for replay revocation).
 
 ### `auth_oidc.authorization_code` — PKCE Auth Codes
-One-time use, 10-min TTL. Fields: `code`, `client_id`, `user_id`, `redirect_uri`, `scope`, `nonce`, `code_challenge`, `code_challenge_method` (plain/S256), `expires_at`, `used`.
+One-time use, 10-min TTL, stored as SHA-256 hash (raw via `code_value` computed field, lookup via `find_by_code()`). Replay of a consumed code revokes all tokens issued from it. PKCE verifiers must match RFC 7636 (43–128 chars, unreserved set). Fields: `code` (hash), `client_id`, `user_id`, `redirect_uri`, `redirect_uri_explicit`, `scope`, `nonce`, `code_challenge`, `code_challenge_method` (plain/S256), `expires_at`, `used`.
 
 ### `auth_oidc.key` — JWT Signing Keys
 Fields: `name`, `kid` (unique, published in JWKS), `alg` (RS256), `kty` (RSA), `use` (sig), `public_jwk` (auto-derived from private key), `private_key_pem` (system group only), `active`, `expires_at`.
@@ -86,7 +86,7 @@ Unique per `(user_id, client_id)`. Fields: `user_id`, `client_id`, `scope_ids`, 
 
 ### `auth_oidc.event` — Audit Log
 Immutable records. `_order = "create_date desc"`. Fields: `event_type`, `description`, `client_id`, `user_id`, `ip_address`, `user_agent`.
-Event types: `authorization_code`, `token_issued`, `token_rotated`, `token_revoked`, `token_revoke_failed`, `token_introspected`, `token_introspection_failed`, `consent_denied`, `userinfo`, `client_revoked`.
+Event types: `authorization_code`, `token_issued`, `token_rotated`, `token_revoked`, `token_revoke_failed`, `token_introspected`, `token_introspection_failed`, `consent_denied`, `userinfo`, `userinfo_failed`, `client_revoked`, `session_ended`.
 
 ### `auth_oidc.rate_limit` — Rate Limiting
 Fields: `key` (endpoint:ip[:client_id]), `window_start`, `count`. `register_hit()` returns `(allowed, retry_after_seconds)`.
@@ -110,11 +110,11 @@ System parameters set via `ir.config_parameter`:
 | `/oauth/userinfo` | GET, OPTIONS | Bearer token | User claims |
 | `/oauth/revoke` | POST, OPTIONS | client auth | RFC 7009 token revocation |
 | `/oauth/introspect` | POST, OPTIONS | client auth | RFC 7662 token introspection |
-| `/oauth/end_session` | GET, POST | public | Session logout |
+| `/oauth/end_session` | GET, POST | public | RP-initiated logout: redirect only to registered post-logout URIs; confirmation page unless a verified `id_token_hint` is presented |
 
 ### CORS Strategy
 - Discovery (`/.well-known/*`): `Access-Control-Allow-Origin: *`
-- Credentialed endpoints (token, userinfo, introspect, revoke): origin-based CORS matched against registered client redirect URI domains
+- OAuth endpoints (token, userinfo, introspect, revoke): exact origin match (scheme+host+port) against registered client redirect URI origins; no subdomain wildcards, no `Allow-Credentials`
 
 ## Development Conventions
 
@@ -164,4 +164,4 @@ Query `auth_oidc.event` (Security → Events in admin UI) — all operations are
 
 ## Error Handling Pattern
 
-RFC-compliant error codes returned as JSON: `invalid_request`, `invalid_client`, `invalid_grant`, `unsupported_grant_type`, `access_denied`. Errors after a valid redirect URI is established are returned as redirects per OAuth2 spec (RFC 6749 §4.1.2.1).
+RFC-compliant error codes returned as JSON: `invalid_request`, `invalid_client`, `invalid_grant`, `invalid_scope`, `unsupported_grant_type`, `access_denied`. Errors after a valid redirect URI is established are returned as redirects per OAuth2 spec (RFC 6749 §4.1.2.1). The issuer (`iss`) always comes from `web.base.url`, never the Host header.

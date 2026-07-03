@@ -46,10 +46,12 @@
 Discovery endpoints (`/.well-known/*`) return `Access-Control-Allow-Origin: *` —
 they are public documents that any relying party must be able to fetch from a browser.
 
-Credentialed endpoints (token, userinfo, introspect, revoke) use origin-based CORS:
-the request `Origin` header is matched against all active clients' registered redirect
-URI domains. Only matching origins receive `Access-Control-Allow-Origin` plus
-`Access-Control-Allow-Credentials: true`. All these endpoints handle OPTIONS preflight.
+The OAuth endpoints (token, userinfo, introspect, revoke) use origin-based CORS:
+the request `Origin` header must exactly match (scheme + host + port, default ports
+normalized) the origin of an active client's registered redirect URI. No subdomain
+wildcards, and `Access-Control-Allow-Credentials` is never sent — these endpoints
+authenticate via Authorization header or body, not cookies. All these endpoints
+handle OPTIONS preflight.
 
 No changes to `odoo.conf` (the `cors =` setting) are needed.
 
@@ -86,8 +88,19 @@ token's granted scopes. See `docs/scopes.md` for the full claim matrix.
   (SHA-256) at rest.
 - Refresh tokens: long-lived (30 days), also hashed at rest. Rotated on every use —
   old token deleted, new pair (access + refresh) issued.
+- Authorization codes are also stored hashed; replaying a consumed code revokes all
+  tokens issued from it (RFC 6749 §4.1.2).
+- Client secrets are stored as SHA-256 hashes and compared in constant time; the raw
+  value is shown only once at generation.
 - Introspection and revocation require client authentication and are scoped to the
   requesting client's own tokens.
+
+## Logout
+
+`/oauth/end_session` follows `post_logout_redirect_uri` only when it exactly matches
+a registered post-logout URI of the client identified by `client_id` or a verified
+`id_token_hint`. Without a valid hint, a CSRF-protected confirmation page is shown
+before the Odoo session is ended.
 
 ## Extensibility Notes
 

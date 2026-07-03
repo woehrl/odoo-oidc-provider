@@ -88,4 +88,51 @@
             </div>
         </t>
     </template>
+
+    <template id="logout_confirm_page" name="OIDC Logout Confirmation">
+        <t t-call="web.layout">
+            <div class="oe_structure">
+                <div class="container" style="max-width: 520px; margin-top: 60px; margin-bottom: 60px;">
+                    <div class="card shadow-sm">
+
+                        <div class="card-header text-center py-3">
+                            <h4 class="mb-0">
+                                <i class="fa fa-sign-out me-2"/>Sign out?
+                            </h4>
+                        </div>
+
+                        <div class="card-body p-4">
+                            <div class="text-center mb-4">
+                                <t t-if="client">
+                                    <p class="fs-5 mb-1"><strong t-esc="client.name"/></p>
+                                    <p class="text-muted small mb-0">is asking to end your session.</p>
+                                </t>
+                                <t t-else="">
+                                    <p class="text-muted mb-0">A sign-out of your current session was requested.</p>
+                                </t>
+                            </div>
+
+                            <form t-att-action="request.httprequest.path" method="post">
+                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                <t t-foreach="params.items()" t-as="item">
+                                    <input type="hidden" t-att-name="item[0]" t-att-value="item[1]"/>
+                                </t>
+                                <div class="d-flex gap-2">
+                                    <button type="submit" name="decision" value="confirm"
+                                            class="btn btn-primary w-100">
+                                        <i class="fa fa-sign-out me-1"/>Sign out
+                                    </button>
+                                    <button type="submit" name="decision" value="cancel"
+                                            class="btn btn-outline-secondary w-100">
+                                        <i class="fa fa-times me-1"/>Cancel
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
 </odoo>

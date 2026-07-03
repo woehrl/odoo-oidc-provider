@@ -1,6 +1,16 @@
 from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError
+import hashlib
+import hmac
 import secrets
+
+# Prefix marking a client_secret stored as SHA-256 rather than plaintext.
+# Secrets from before the hashing change are migrated on first successful use.
+SECRET_HASH_PREFIX = "sha256$"  # noqa: S105 - storage format marker, not a credential
+
+
+def _hash_secret(raw_secret):
+    return SECRET_HASH_PREFIX + hashlib.sha256(raw_secret.encode()).hexdigest()
 
 
 class OAuthClient(models.Model):
@@ -12,6 +22,11 @@ class OAuthClient(models.Model):
     client_secret = fields.Char(groups="base.group_system", copy=False)
     redirect_uris = fields.Text(
         help="One redirect URI per line (exact match).",
+    )
+    post_logout_redirect_uris = fields.Text(
+        string="Post-Logout Redirect URIs",
+        help="One URI per line (exact match). Only these targets are allowed "
+        "for post_logout_redirect_uri at the end_session endpoint.",
     )
     allowed_scopes = fields.Many2many(
         "auth_oidc.scope",
@@ -49,15 +64,32 @@ class OAuthClient(models.Model):
         for vals in vals_list:
             allow_public_spa = vals.get("allow_public_spa", False)
             if not allow_public_spa and vals.get("is_confidential", True) and not vals.get("client_secret"):
-                vals["client_secret"] = secrets.token_urlsafe(32)
+                # Auto-generated secrets are stored hashed and therefore not
+                # retrievable; use "Generate Secret" to obtain a usable value.
+                vals["client_secret"] = _hash_secret(secrets.token_urlsafe(32))
         return super().create(vals_list)
 
     def write(self, vals):
         res = super().write(vals)
         for client in self:
             if not client.allow_public_spa and client.is_confidential and not client.client_secret:
-                client.client_secret = secrets.token_urlsafe(32)
+                client.client_secret = _hash_secret(secrets.token_urlsafe(32))
         return res
+
+    def verify_secret(self, provided_secret):
+        """Constant-time client secret check. Secrets are stored as SHA-256;
+        plaintext values from before the hashing change are verified once and
+        upgraded in place."""
+        self.ensure_one()
+        stored = self.client_secret or ""
+        if not provided_secret or not stored:
+            return False
+        if stored.startswith(SECRET_HASH_PREFIX):
+            return hmac.compare_digest(stored, _hash_secret(provided_secret))
+        if hmac.compare_digest(stored, provided_secret):
+            self.sudo().client_secret = _hash_secret(provided_secret)
+            return True
+        return False
 
     @api.constrains("is_confidential", "client_secret", "allow_public_spa")
     def _check_confidential_secret(self):
@@ -90,28 +122,56 @@ class OAuthClient(models.Model):
             return False
         return uri.strip() in self._parsed_redirect_uris()
 
+    def _parsed_post_logout_uris(self):
+        self.ensure_one()
+        return [
+            uri.strip()
+            for uri in (self.post_logout_redirect_uris or "").splitlines()
+            if uri.strip()
+        ]
+
+    def validate_post_logout_uri(self, uri):
+        """Exact match against the registered post-logout redirect URIs."""
+        self.ensure_one()
+        if not uri:
+            return False
+        return uri.strip() in self._parsed_post_logout_uris()
+
     def action_generate_secret(self):
         self.ensure_one()
-        self.client_secret = secrets.token_urlsafe(32)
+        raw_secret = secrets.token_urlsafe(32)
+        self.client_secret = _hash_secret(raw_secret)
         return {
             "type": "ir.actions.client",
             "tag": "display_notification",
             "params": {
                 "title": _("New client secret generated"),
-                "message": self.client_secret,
-                "sticky": False,
+                "message": _(
+                    "Copy it now — it is stored hashed and cannot be shown again: %s"
+                ) % raw_secret,
+                "sticky": True,
                 "type": "warning",
             },
         }
 
     def action_show_secret(self):
         self.ensure_one()
+        if not self.client_secret:
+            message = _("No secret set")
+        elif self.client_secret.startswith(SECRET_HASH_PREFIX):
+            message = _(
+                "The secret is stored hashed and cannot be displayed. "
+                "Use 'Generate Secret' to obtain a new one."
+            )
+        else:
+            # Legacy plaintext secret from before the hashing change.
+            message = self.client_secret
         return {
             "type": "ir.actions.client",
             "tag": "display_notification",
             "params": {
                 "title": _("Client secret"),
-                "message": self.client_secret or _("No secret set"),
+                "message": message,
                 "sticky": False,
                 "type": "success",
             },

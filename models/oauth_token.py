@@ -51,6 +51,13 @@ class OAuthToken(models.Model):
         "token_id",
         "scope_id",
     )
+    auth_code_id = fields.Many2one(
+        "auth_oidc.authorization_code",
+        ondelete="set null",
+        index=True,
+        help="Authorization code this token was issued from; used to revoke "
+        "tokens when a code replay is detected (RFC 6749 §4.1.2).",
+    )
 
     _sql_constraints = [
         ("auth_oidc_token_unique", "unique(token)", "Token value must be unique."),
@@ -90,7 +97,7 @@ class OAuthToken(models.Model):
         return scope_model.search(domain or [])
 
     @api.model
-    def _create_token(self, token_type, client, user, scopes, ttl_seconds):
+    def _create_token(self, token_type, client, user, scopes, ttl_seconds, auth_code=None):
         expires_at = fields.Datetime.to_string(
             datetime.utcnow() + timedelta(seconds=ttl_seconds)
         )
@@ -105,6 +112,7 @@ class OAuthToken(models.Model):
                 "user_id": user.id,
                 "expires_at": expires_at,
                 "scope_ids": [(6, 0, scope_records.ids)],
+                "auth_code_id": auth_code.id if auth_code else False,
             }
         )
         # Keep raw token in context only (not persisted) for immediate return.
@@ -112,14 +120,22 @@ class OAuthToken(models.Model):
         return record.with_context(token_value_map=token_map, token_value=token_value)
 
     @api.model
-    def create_access_token(self, client, user, scopes, ttl_seconds=3600):
+    def create_access_token(self, client, user, scopes, ttl_seconds=3600, auth_code=None):
         """Minimal access token creation helper."""
-        return self._create_token("access", client, user, scopes, ttl_seconds)
+        return self._create_token("access", client, user, scopes, ttl_seconds, auth_code=auth_code)
 
     @api.model
-    def create_refresh_token(self, client, user, scopes, ttl_seconds=30 * 24 * 3600):
+    def create_refresh_token(self, client, user, scopes, ttl_seconds=30 * 24 * 3600, auth_code=None):
         """Minimal refresh token creation helper."""
-        return self._create_token("refresh", client, user, scopes, ttl_seconds)
+        return self._create_token("refresh", client, user, scopes, ttl_seconds, auth_code=auth_code)
+
+    @api.model
+    def revoke_for_auth_code(self, auth_code):
+        """Revoke all tokens issued from a replayed authorization code."""
+        tokens = self.search([("auth_code_id", "=", auth_code.id)])
+        count = len(tokens)
+        tokens.unlink()
+        return count
 
     @api.model
     def validate_access_token(self, token_value):

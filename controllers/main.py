@@ -2,7 +2,7 @@ import base64
 import hashlib
 import json
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timezone
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 from odoo import http, fields
@@ -16,6 +16,7 @@ RATE_LIMIT_DEFAULTS = {
     "userinfo": (120, 60),
     "introspect": (60, 60),
     "revoke": (60, 60),
+    "end_session": (30, 60),
 }
 
 def _json_response(payload, status=200, headers=None):
@@ -26,7 +27,24 @@ def _json_response(payload, status=200, headers=None):
 
 
 def _base_url():
+    """Canonical issuer URL. Uses web.base.url so the issuer in discovery and
+    signed ID tokens cannot be influenced by the request's Host header."""
+    base = request.env["ir.config_parameter"].sudo().get_param("web.base.url")
+    if base:
+        return base.rstrip("/")
     return request.httprequest.host_url.rstrip("/")
+
+
+def _utc_epoch(naive_utc_dt):
+    """Epoch seconds for a naive datetime that is known to be UTC (Odoo's
+    storage convention). A bare .timestamp() would interpret it as local time."""
+    return int(naive_utc_dt.replace(tzinfo=timezone.utc).timestamp())
+
+
+def _expires_in(token):
+    """Remaining lifetime of a token record in seconds."""
+    delta = fields.Datetime.to_datetime(token.expires_at) - datetime.utcnow()
+    return max(0, int(delta.total_seconds()))
 
 
 def _user_type(user):
@@ -51,25 +69,6 @@ def _origin_host(origin):
     return parsed.scheme, parsed.netloc.lower()
 
 
-def _base_domain(hostname):
-    # Naive base domain extraction: last two labels (e.g. example.com).
-    # This keeps things simple but may be too broad for multi-part TLDs.
-    parts = hostname.split(".")
-    if len(parts) < 2:
-        return hostname
-    return ".".join(parts[-2:])
-
-
-def _strip_port(netloc):
-    """Remove port from netloc, preserving IPv6 bracket notation."""
-    if netloc.startswith("["):
-        end = netloc.find("]")
-        return netloc[: end + 1] if end != -1 else netloc
-    if ":" in netloc:
-        return netloc.rsplit(":", 1)[0]
-    return netloc
-
-
 def _normalize_netloc(scheme, netloc):
     """Strip default ports (80 for http, 443 for https) so that
     'https://host:443' and 'https://host' compare equal."""
@@ -84,6 +83,10 @@ def _normalize_netloc(scheme, netloc):
 
 
 def _origin_allowed_for_client(origin, client):
+    """Exact origin match (scheme + host + port, default ports normalized)
+    against the origins of the client's registered redirect URIs.
+    No subdomain wildcards: a registered https://app.example.com/callback
+    allows exactly the origin https://app.example.com and nothing else."""
     scheme, origin_netloc = _origin_host(origin)
     if not scheme or not origin_netloc:
         return False
@@ -92,17 +95,8 @@ def _origin_allowed_for_client(origin, client):
         parsed = urlparse(uri)
         if not parsed.scheme or not parsed.netloc:
             continue
-        redirect_netloc = parsed.netloc.lower()
-        redirect_norm = _normalize_netloc(parsed.scheme, redirect_netloc)
-        # Exact origin match (after normalizing away default ports)
+        redirect_norm = _normalize_netloc(parsed.scheme, parsed.netloc.lower())
         if scheme == parsed.scheme and origin_norm == redirect_norm:
-            return True
-        # Allow any subdomain of the registered base domain.
-        # Strip port before base-domain extraction so that
-        # 'example.com:3000' does not corrupt the comparison.
-        base = _base_domain(_strip_port(redirect_netloc))
-        origin_hostname = _strip_port(origin_norm)
-        if origin_hostname == base or origin_hostname.endswith("." + base):
             return True
     return False
 
@@ -113,7 +107,8 @@ def _cors_headers(origin, client=None):
     if client and _origin_allowed_for_client(origin, client):
         allowed = True
     else:
-        # Fallback: allow origin if it matches any active client's redirect domain.
+        # Preflight arrives before client authentication; match the origin
+        # against any active client's registered redirect URI origins.
         allowed = False
         for c in request.env["auth_oidc.client"].sudo().search([("active", "=", True)]):
             if _origin_allowed_for_client(origin, c):
@@ -121,9 +116,11 @@ def _cors_headers(origin, client=None):
                 break
     if not allowed:
         return {}
+    # No Access-Control-Allow-Credentials: these endpoints authenticate via
+    # Authorization header / body parameters, never via cookies.
     return {
         "Access-Control-Allow-Origin": origin,
-        "Access-Control-Allow-Credentials": "true",
+        "Vary": "Origin",
         "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
         "Access-Control-Allow-Headers": "Authorization, Content-Type",
     }
@@ -180,6 +177,8 @@ def _log_event(event_type, description, client=None, user=None):
 
 
 def _require_https():
+    if not _bool_param("odoo_oidc.require_https", True):
+        return None
     if request.httprequest.scheme != "https":
         return _json_response(
             {"error": "invalid_request", "error_description": "HTTPS required"},
@@ -203,6 +202,43 @@ def _cors_public_headers():
         "Access-Control-Allow-Methods": "GET, OPTIONS",
         "Access-Control-Allow-Headers": "Accept, Content-Type",
     }
+
+
+def _verify_id_token_hint(hint):
+    """Verify an id_token_hint against our own signing keys and issuer.
+    Expired tokens are accepted (per OIDC RP-Initiated Logout) but the
+    signature must be ours. Returns the claims dict or None."""
+    try:
+        import jwt
+        from cryptography.hazmat.primitives import serialization
+    except Exception:  # noqa: BLE001 - optional dependency missing
+        return None
+    try:
+        header = jwt.get_unverified_header(hint)
+    except Exception:  # noqa: BLE001 - not a JWT
+        return None
+    key_model = request.env["auth_oidc.key"].sudo()
+    domain = [("use", "=", "sig")]
+    if header.get("kid"):
+        domain.append(("kid", "=", header["kid"]))
+    for key in key_model.search(domain):
+        if not key.private_key_pem:
+            continue
+        try:
+            private_key = serialization.load_pem_private_key(
+                key.private_key_pem.encode(), password=None
+            )
+            return jwt.decode(
+                hint,
+                key=private_key.public_key(),
+                algorithms=["RS256"],
+                issuer=_base_url(),
+                options={"verify_exp": False, "verify_aud": False},
+            )
+        except Exception:  # noqa: BLE001 - try remaining keys
+            _logger.debug("id_token_hint did not verify against key %s", key.kid)
+            continue
+    return None
 
 
 def _redirect_error(redirect_uri, error, description=None, state=None):
@@ -383,8 +419,18 @@ class OidcController(http.Controller):
 
         # From this point redirect_uri is validated; errors must be returned
         # as redirects per RFC 6749 §4.1.2.1 / OIDC Core §3.1.2.6.
+        scopes_asked = (scope or "").split()
         requested_scopes = self._required_scopes(client, scope)
         scope_str = " ".join(requested_scopes)
+
+        # RFC 6749 §4.1.2.1: reject rather than silently grant nothing, and
+        # never drop openid silently — the client expects an OIDC response.
+        if scopes_asked and not requested_scopes:
+            return _redirect_error(redirect_target, "invalid_scope",
+                                   "None of the requested scopes are allowed for this client", state)
+        if "openid" in scopes_asked and "openid" not in requested_scopes:
+            return _redirect_error(redirect_target, "invalid_scope",
+                                   "openid scope is not allowed for this client", state)
 
         if not client.is_confidential and not code_challenge:
             return _redirect_error(redirect_target, "invalid_request",
@@ -445,12 +491,13 @@ class OidcController(http.Controller):
             nonce=nonce,
             code_challenge=code_challenge,
             code_challenge_method=code_challenge_method or "S256",
+            redirect_uri_explicit=bool(redirect_uri),
         )
         _log_event("authorization_code", "Issued authorization code", client=client, user=request.env.user)
 
         parsed = urlparse(redirect_target)
         query = dict(parse_qsl(parsed.query))
-        query["code"] = auth_code.code
+        query["code"] = auth_code.code_value
         if state:
             query["state"] = state
         redirect_url = urlunparse(
@@ -481,7 +528,7 @@ class OidcController(http.Controller):
         client = request.env["auth_oidc.client"].sudo().get_by_client_id(client_id)
         if not client:
             return None
-        if client.is_confidential and client.client_secret != client_secret:
+        if client.is_confidential and not client.verify_secret(client_secret):
             return None
         if not client.is_confidential and client_secret:
             return None
@@ -500,13 +547,17 @@ class OidcController(http.Controller):
             return None, "No active signing key"
         if not key.private_key_pem:
             return None, "Signing key missing secret material"
+        now_epoch = _utc_epoch(datetime.utcnow())
+        # auth_time is when the user actually authenticated (OIDC Core §2),
+        # not when this token was minted; login_date is Odoo's record of that.
+        login_date = user.login_date
         claims = {
             "iss": _base_url(),
             "sub": str(user.id),
             "aud": [client.client_id],
-            "iat": int(datetime.utcnow().timestamp()),
-            "exp": int((datetime.utcnow() + timedelta(minutes=60)).timestamp()),
-            "auth_time": int(fields.Datetime.now().timestamp()),
+            "iat": now_epoch,
+            "exp": now_epoch + 3600,
+            "auth_time": _utc_epoch(login_date) if login_date else now_epoch,
             "azp": client.client_id,
         }
         partner = user.partner_id
@@ -621,14 +672,33 @@ class OidcController(http.Controller):
                 code_value = params.get("code")
                 redirect_uri = params.get("redirect_uri")
                 code_verifier = params.get("code_verifier")
-                auth_code = code_model.search([("code", "=", code_value)], limit=1)
+                auth_code = code_model.find_by_code(code_value)
 
-                if (
-                    not auth_code
-                    or auth_code.client_id != client
-                    or auth_code.redirect_uri != redirect_uri
-                    or not auth_code.consume(code_verifier)
-                ):
+                if not auth_code or auth_code.client_id != client:
+                    return _json_response({"error": "invalid_grant"}, status=400, headers=_cors_headers(origin, client))
+
+                if auth_code.used:
+                    # RFC 6749 §4.1.2: a replayed code revokes everything
+                    # previously issued on the strength of that code.
+                    revoked = token_model.revoke_for_auth_code(auth_code)
+                    if revoked:
+                        _log_event(
+                            "token_revoked",
+                            f"Authorization code replay detected; revoked {revoked} token(s)",
+                            client=client,
+                            user=auth_code.user_id,
+                        )
+                    return _json_response({"error": "invalid_grant"}, status=400, headers=_cors_headers(origin, client))
+
+                # RFC 6749 §4.1.3: redirect_uri is required and must match if it
+                # was sent in the authorization request, and must be absent or
+                # matching if the authorization request relied on the default.
+                if auth_code.redirect_uri_explicit:
+                    redirect_ok = redirect_uri == auth_code.redirect_uri
+                else:
+                    redirect_ok = not redirect_uri or redirect_uri == auth_code.redirect_uri
+
+                if not redirect_ok or not auth_code.consume(code_verifier):
                     return _json_response({"error": "invalid_grant"}, status=400, headers=_cors_headers(origin, client))
 
                 scope_names = (auth_code.scope or "").split()
@@ -636,10 +706,13 @@ class OidcController(http.Controller):
                     [("name", "in", scope_names)]
                 )
                 user = auth_code.user_id.sudo()
-                access = token_model.create_access_token(client, user, scopes)
-                refresh = token_model.create_refresh_token(client, user, scopes)
-                access_token_value = getattr(access, "token_value", None) or access.token
-                refresh_token_value = getattr(refresh, "token_value", None) or refresh.token
+                access = token_model.create_access_token(client, user, scopes, auth_code=auth_code)
+                refresh = token_model.create_refresh_token(client, user, scopes, auth_code=auth_code)
+                access_token_value = access.token_value
+                refresh_token_value = refresh.token_value
+                if not access_token_value or not refresh_token_value:
+                    # Never fall back to the stored hash; fail loudly instead.
+                    raise ValueError("Raw token value unavailable after creation")
 
                 id_token = None
                 id_token_error = None
@@ -655,7 +728,7 @@ class OidcController(http.Controller):
                 response = {
                     "access_token": access_token_value,
                     "token_type": "bearer",
-                    "expires_in": 3600,
+                    "expires_in": _expires_in(access),
                     "refresh_token": refresh_token_value,
                     "scope": " ".join(scope_names),
                 }
@@ -674,17 +747,19 @@ class OidcController(http.Controller):
                 )
                 if not access:
                     return _json_response({"error": "invalid_grant"}, status=400, headers=_cors_headers(origin, client))
-                access_token_value = getattr(access, "token_value", None) or access.token
-                refresh_token_value = getattr(new_refresh, "token_value", None) if new_refresh else None
+                access_token_value = access.token_value
+                refresh_token_value = new_refresh.token_value if new_refresh else None
+                if not access_token_value or (new_refresh and not refresh_token_value):
+                    raise ValueError("Raw token value unavailable after rotation")
                 scope_names = access.scope_ids.mapped("name")
                 response = {
                     "access_token": access_token_value,
                     "token_type": "bearer",
-                    "expires_in": 3600,
+                    "expires_in": _expires_in(access),
                     "scope": " ".join(scope_names),
                 }
                 if new_refresh:
-                    response["refresh_token"] = refresh_token_value or new_refresh.token
+                    response["refresh_token"] = refresh_token_value
                 # Per OIDC Core §12.2, return a fresh id_token when openid scope is present
                 if "openid" in scope_names:
                     id_token, id_token_error = self._build_id_token(
@@ -784,7 +859,7 @@ class OidcController(http.Controller):
                 "active": True,
                 "client_id": token.client_id.client_id,
                 "token_type": token.token_type,
-                "exp": int(fields.Datetime.to_datetime(token.expires_at).timestamp()),
+                "exp": _utc_epoch(fields.Datetime.to_datetime(token.expires_at)),
                 "sub": str(token.user_id.id),
                 "scope": " ".join(token.scope_ids.mapped("name")),
             }
@@ -903,17 +978,80 @@ class OidcController(http.Controller):
         "/oauth/end_session",
         auth="public",
         type="http",
-        csrf=False,
+        csrf=False,  # RPs legitimately GET/POST here cross-site; the local
+        # confirmation form is CSRF-checked manually below.
         methods=["GET", "POST"],
     )
     def end_session(self, **params):
         https_guard = _require_https()
         if https_guard:
             return https_guard
-        post_logout_redirect = params.get("post_logout_redirect_uri") or params.get("redirect_uri")
-        # Clear the current Odoo session if any.
+        rl_guard = _rate_limit("end_session")
+        if rl_guard:
+            return rl_guard
+
+        id_token_hint = params.get("id_token_hint")
+        post_logout = params.get("post_logout_redirect_uri")
+        state = params.get("state")
+        client_id_param = params.get("client_id")
+
+        hint_claims = _verify_id_token_hint(id_token_hint) if id_token_hint else None
+        hint_client_id = None
+        if hint_claims:
+            aud = hint_claims.get("aud")
+            if isinstance(aud, list):
+                hint_client_id = aud[0] if aud else None
+            elif isinstance(aud, str):
+                hint_client_id = aud
+        if client_id_param and hint_client_id and client_id_param != hint_client_id:
+            return _json_response(
+                {"error": "invalid_request",
+                 "error_description": "client_id does not match id_token_hint audience"},
+                status=400,
+            )
+
+        client = None
+        lookup_id = hint_client_id or client_id_param
+        if lookup_id:
+            client = request.env["auth_oidc.client"].sudo().get_by_client_id(lookup_id)
+
+        # Only exact matches against the client's registered post-logout URIs
+        # are followed; anything else falls back to the JSON confirmation.
+        redirect_target = None
+        if post_logout and client and client.validate_post_logout_uri(post_logout):
+            redirect_target = post_logout
+
+        # A verified id_token_hint proves the request comes from an RP we
+        # issued a token to; without it, ask the user before ending the
+        # session (OIDC RP-Initiated Logout 1.0 §6).
+        if request.session.uid and not hint_claims:
+            decision = params.get("decision")
+            csrf_ok = request.validate_csrf(params.get("csrf_token") or "")
+            if request.httprequest.method == "POST" and decision == "cancel" and csrf_ok:
+                return request.redirect("/", local=True)
+            if not (request.httprequest.method == "POST" and decision == "confirm" and csrf_ok):
+                safe_params = {
+                    k: params[k]
+                    for k in ("post_logout_redirect_uri", "client_id", "id_token_hint", "state")
+                    if params.get(k)
+                }
+                return request.render(
+                    "odoo_oidc_provider.logout_confirm_page",
+                    {"client": client, "params": safe_params},
+                )
+
         if request.session.uid:
+            _log_event("session_ended", "Session ended via end_session", client=client, user=request.env.user)
             request.session.logout()
-        if post_logout_redirect:
-            return request.redirect(post_logout_redirect, local=False)
+
+        if redirect_target:
+            if state:
+                parsed = urlparse(redirect_target)
+                query = dict(parse_qsl(parsed.query))
+                query["state"] = state
+                redirect_target = urlunparse((
+                    parsed.scheme, parsed.netloc, parsed.path,
+                    parsed.params, urlencode(query), parsed.fragment,
+                ))
+            return request.redirect(redirect_target, local=False)
         return _json_response({"message": "Session ended"})

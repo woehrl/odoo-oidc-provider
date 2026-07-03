@@ -22,10 +22,17 @@ Confidential clients must present `client_secret` via HTTP Basic auth
 must not send a secret. Client authentication is validated on token, introspect, and
 revoke endpoints.
 
+Client secrets are stored as SHA-256 hashes (prefixed `sha256$`) and compared in
+constant time. Secrets can therefore only be read at generation time — the
+"Generate Secret" action displays the value once. Plaintext secrets from installs
+prior to this change are migrated to hashes on their first successful use.
+
 ## Scopes
 
-Limit scopes per client via `allowed_scopes`; the authorization endpoint silently
-filters requested scopes to the allowed set. When a client has no scopes configured,
+Limit scopes per client via `allowed_scopes`; the authorization endpoint filters
+requested scopes to the allowed set. If no requested scope survives filtering, or
+`openid` itself was requested but filtered, the request is rejected with
+`error=invalid_scope` (RFC 6749 §4.1.2.1). When a client has no scopes configured,
 all requests are denied unless `odoo_oidc.allow_all_scopes_when_unset` is explicitly
 enabled (not recommended).
 
@@ -41,26 +48,42 @@ Discovery endpoints (`/.well-known/openid-configuration`, `/.well-known/jwks.jso
 use `Access-Control-Allow-Origin: *` — they are intentionally public and must be
 reachable from any browser. No credentials are involved.
 
-Credentialed endpoints (token, userinfo, introspect, revoke) use origin-based CORS:
-the `Origin` header is matched against all active clients' redirect URI domains. Only
-matching origins receive `Access-Control-Allow-Origin` with
-`Access-Control-Allow-Credentials: true`. No changes to `odoo.conf` are needed.
+The OAuth endpoints (token, userinfo, introspect, revoke) use origin-based CORS:
+the `Origin` header must be an **exact match** (scheme + host + port, default ports
+normalized) for the origin of an active client's registered redirect URI. No
+subdomain wildcards. `Access-Control-Allow-Credentials` is never sent — these
+endpoints authenticate via the Authorization header or body parameters, not cookies.
+No changes to `odoo.conf` are needed.
 
 ## Keys / JWKS
 
 Manage signing keys in `auth_oidc.key`. Store private keys restricted to
-`base.group_system`. Prefer RS256 with at least 2048-bit RSA keys. Rotate keys
-regularly; the JWKS endpoint automatically skips inactive or expired keys, allowing
-zero-downtime rotation when a new key is added before the old one is expired.
-HS256 is supported but requires the secret to remain in the database, which is less
-desirable than asymmetric keys.
+`base.group_system`. Only RS256 with RSA keys (2048-bit generated in the UI) is
+supported. Rotate keys regularly; the JWKS endpoint automatically skips inactive or
+expired keys, allowing zero-downtime rotation when a new key is added before the old
+one is expired.
 
-## Tokens
+The issuer (`iss`) in discovery and ID tokens is taken from the `web.base.url`
+system parameter, never from the request's Host header.
+
+## Tokens & Authorization Codes
 
 Access tokens: 1-hour TTL. Refresh tokens: 30-day TTL, rotated on every use (old token
-deleted on rotation). Both token types are stored as SHA-256 hashes at rest; raw values
-are returned only at issuance. Consider adding IP/device binding if required by your
-threat model.
+deleted on rotation). Both token types and authorization codes are stored as SHA-256
+hashes at rest; raw values are returned only at issuance.
+
+Authorization codes are one-time use with a 10-minute TTL. Replaying a consumed code
+revokes all tokens previously issued from it (RFC 6749 §4.1.2). PKCE code verifiers
+must satisfy RFC 7636 (43–128 characters, unreserved set) and are compared in
+constant time. Consider adding IP/device binding if required by your threat model.
+
+## Logout (end_session)
+
+`post_logout_redirect_uri` is followed only if it exactly matches one of the client's
+registered **Post-Logout Redirect URIs**; the client is identified via `client_id`
+and/or a signature-verified `id_token_hint`. Without a valid `id_token_hint`, a
+CSRF-protected confirmation page is shown before the session is ended, so third-party
+pages cannot log users out silently.
 
 ## Rate Limiting
 
@@ -75,6 +98,7 @@ endpoints. Defaults (configurable via system parameters
 | userinfo | 120 | 60 s |
 | introspect | 60 | 60 s |
 | revoke | 60 | 60 s |
+| end_session | 30 | 60 s |
 
 Use a reverse proxy or WAF for additional protection.
 
@@ -87,8 +111,9 @@ for anomalies.
 ## Error Handling
 
 RFC-compliant error codes: `invalid_request`, `invalid_client`, `invalid_grant`,
-`unsupported_grant_type`, `access_denied`. Errors that occur after a valid redirect URI
-is established are returned as redirects (not direct JSON), per the OAuth2 spec.
+`invalid_scope`, `unsupported_grant_type`, `access_denied`. Errors that occur after a
+valid redirect URI is established are returned as redirects (not direct JSON), per the
+OAuth2 spec.
 
 ## Transport
 
@@ -99,9 +124,7 @@ with `proxy_mode = True` in `odoo.conf`.
 
 ## Hardening TODOs
 
-- Add replay protection for authorization codes (code replay is partially mitigated by
-  the one-time-use flag, but consider binding codes to the client IP).
 - Consider PKCE enforcement for confidential clients as well (currently optional).
 - Add anti-phishing UX to the consent page (e.g., display client logo/description).
 - Consider peppering token hashes and adding DB row-level access control.
-- Consider `id_token_hint` validation on `/oauth/end_session`.
+- Consider binding authorization codes to the client IP.

@@ -1,5 +1,7 @@
 from datetime import timedelta
 
+from psycopg2 import IntegrityError
+
 from odoo import api, fields, models
 
 
@@ -29,19 +31,33 @@ class OAuthRateLimit(models.Model):
             limit=1,
         )
         if not bucket:
-            self.create({"key": key, "window_start": now, "count": 1})
-            return True, 0
+            try:
+                with self.env.cr.savepoint():
+                    self.create({"key": key, "window_start": now, "count": 1})
+                return True, 0
+            except IntegrityError:
+                # Concurrent request created the same bucket; fall through
+                # and count this hit against it.
+                bucket = self.search([("key", "=", key)], order="window_start desc", limit=1)
+                if not bucket:
+                    return True, 0
 
         # Reset bucket when outside window
         if fields.Datetime.to_datetime(bucket.window_start) < window_open:
             bucket.write({"window_start": now, "count": 1})
             return True, 0
 
-        if bucket.count >= limit:
+        # Increment atomically in SQL so concurrent requests cannot both
+        # read the same count and race past the limit.
+        self.env.cr.execute(
+            "UPDATE auth_oidc_rate_limit SET count = count + 1 WHERE id = %s RETURNING count",
+            [bucket.id],
+        )
+        new_count = self.env.cr.fetchone()[0]
+        bucket.invalidate_recordset(["count"])
+        if new_count > limit:
             retry_after = window_seconds - (
                 now - fields.Datetime.to_datetime(bucket.window_start)
             ).total_seconds()
             return False, max(1, int(retry_after))
-
-        bucket.count += 1
         return True, 0
