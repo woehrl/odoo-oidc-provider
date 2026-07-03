@@ -178,7 +178,7 @@ class TestOidcHttp(HttpCase):
         self.assertEqual(body["client_id"], "http-client")
 
         # Different client cannot introspect
-        other_client = self.env["auth_oidc.client"].create(
+        self.env["auth_oidc.client"].create(
             {
                 "name": "Forbidden",
                 "client_id": "forbidden-client",

@@ -2,6 +2,34 @@
 
 This file provides a structured overview for AI agents working on this codebase.
 
+## Hard Constraints
+
+- **No features beyond what was asked.** Do not add endpoints, scopes, claims, fields, or "improvements" outside the requested change — even if they seem sensible. Propose them separately instead.
+- **No new dependencies** (Python packages or Odoo module `depends`) without asking first.
+- **No security-behavior changes as a side effect.** Anything touching token handling, PKCE, client authentication, CORS, redirect URI matching, or rate limiting must be the explicit subject of the task, never incidental.
+- **No schema changes without asking** — model fields, access rules, or seed data.
+- **Never log, display, or persist raw token values or private keys.** Tokens are SHA-256 hashed at rest; private keys are `base.group_system` only.
+
+## Divergence Protocol
+
+If instructions conflict with this document, the docs in `docs/`, or the observed behavior of the code:
+
+1. **Stop** — do not pick an interpretation silently.
+2. Explain the conflict concretely (what was asked vs. what exists).
+3. Wait for a decision before continuing.
+
+## Quality Gate
+
+Every change must pass locally before it is considered done (CI runs the same checks on push/PR — see `.github/workflows/ci.yml`):
+
+```
+ruff check .                          # style + security lint (config: pyproject.toml)
+bandit -r . -c pyproject.toml -ll     # SAST, medium+ severity
+pip-audit -r requirements.txt         # known CVEs in dependencies
+```
+
+If a finding reveals a convention the tools couldn't know, codify it in `pyproject.toml` (per-file-ignores with a comment) rather than sprinkling inline suppressions.
+
 ## Module Overview
 
 Odoo 18.0 module (`odoo_oidc_provider`) implementing a full **OpenID Connect (OIDC) and OAuth2 Identity Provider** for Odoo. Enables Odoo to act as an IdP for external applications — users authenticate with Odoo credentials to access third-party apps.
@@ -15,6 +43,8 @@ Odoo 18.0 module (`odoo_oidc_provider`) implementing a full **OpenID Connect (OI
 | File | Purpose |
 |------|---------|
 | `__manifest__.py` | Module metadata and dependencies |
+| `pyproject.toml` | Tooling config only (ruff, bandit) — not a package definition |
+| `.github/workflows/ci.yml` | Quality gate: ruff, bandit, pip-audit |
 | `controllers/main.py` | All OIDC/OAuth2 HTTP endpoints (the bulk of the logic) |
 | `models/oauth_client.py` | `auth_oidc.client` — registered OAuth2 applications |
 | `models/oauth_token.py` | `auth_oidc.scope`, `auth_oidc.token` — scopes and hashed tokens |

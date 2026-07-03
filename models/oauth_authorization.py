@@ -1,4 +1,5 @@
 ﻿import json
+import logging
 from datetime import datetime, timedelta
 import secrets
 import hashlib
@@ -6,6 +7,8 @@ import base64
 
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
+
+_logger = logging.getLogger(__name__)
 
 
 def _b64url_encode(raw_bytes):
@@ -100,6 +103,7 @@ class OAuthKey(models.Model):
                     from cryptography.hazmat.primitives import serialization
                     from cryptography.hazmat.backends import default_backend
                 except Exception:
+                    _logger.warning("cryptography package unavailable; cannot derive public JWK for key %s", key.kid)
                     continue
                 try:
                     private_key = serialization.load_pem_private_key(
@@ -118,6 +122,7 @@ class OAuthKey(models.Model):
                     )
                     key.public_jwk = jwk_value
                 except Exception:
+                    _logger.warning("Could not derive public JWK for key %s", key.kid, exc_info=True)
                     continue
 
     def action_generate_rsa_key(self):
@@ -129,7 +134,7 @@ class OAuthKey(models.Model):
         except Exception as exc:
             raise UserError(
                 _("cryptography package is required for RSA generation: %s") % exc
-            )
+            ) from exc
         private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
         pem = private_key.private_bytes(
             encoding=serialization.Encoding.PEM,

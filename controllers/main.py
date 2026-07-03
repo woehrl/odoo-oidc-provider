@@ -2,7 +2,6 @@ import base64
 import hashlib
 import json
 import logging
-import secrets
 from datetime import datetime, timedelta
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
@@ -318,6 +317,7 @@ class OidcController(http.Controller):
             try:
                 jwk = json.loads(key.public_jwk)
             except Exception:  # noqa: BLE001 - invalid JWK payload
+                _logger.warning("Skipping key %s: public_jwk is not valid JSON", key.kid)
                 continue
             jwk["kid"] = key.kid
             jwk.setdefault("use", key.use)
@@ -580,7 +580,7 @@ class OidcController(http.Controller):
                 digest = hashlib.sha256(access_token.encode()).digest()[:16]
                 claims["at_hash"] = base64.urlsafe_b64encode(digest).rstrip(b"=").decode()
             except Exception:  # noqa: BLE001
-                pass
+                _logger.warning("Could not compute at_hash for ID token", exc_info=True)
 
         headers = {"kid": key.kid, "alg": key.alg}
         signed = jwt.encode(

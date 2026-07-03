@@ -1,0 +1,31 @@
+# Tooling configuration only — this is an Odoo module, not a pip-installable
+# package. Runtime dependencies live in requirements.txt / __manifest__.py.
+
+[tool.ruff]
+target-version = "py310"
+line-length = 120
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "B",   # flake8-bugbear
+    "UP",  # pyupgrade
+    "S",   # flake8-bandit (security)
+]
+ignore = [
+    "E501",  # line length handled by formatter conventions, Odoo XML strings get long
+    "UP017", # datetime.UTC — Odoo fields.Datetime works with naive UTC datetimes
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Odoo module loading imports models/controllers for their registration side effect
+"__init__.py" = ["F401"]
+# Odoo manifests are a bare dict literal by convention
+"__manifest__.py" = ["B018"]
+# Test fixtures use hardcoded secrets and asserts by design
+"tests/*" = ["S101", "S105", "S106"]
+
+[tool.bandit]
+exclude_dirs = ["tests", ".git"]
