@@ -157,6 +157,33 @@ class TestClientSecret(TransactionCase):
         self.assertTrue(client.verify_secret("plain-legacy-secret"))
         self.assertFalse(client.verify_secret("wrong"))
 
+    def test_public_spa_forces_non_confidential(self):
+        # Creating a SPA client must not leave is_confidential True (which the
+        # constraint would reject).
+        client = self.env["auth_oidc.client"].create(
+            {
+                "name": "SPA",
+                "client_id": "spa-client",
+                "redirect_uris": "https://app.local/callback",
+                "allow_public_spa": True,
+                "is_confidential": True,
+            }
+        )
+        self.assertFalse(client.is_confidential)
+        self.assertFalse(client.client_secret)
+        # Switching an existing confidential client to SPA also clears the flag.
+        conf = self.env["auth_oidc.client"].create(
+            {
+                "name": "Conf",
+                "client_id": "conf-to-spa",
+                "redirect_uris": "https://app.local/callback",
+                "is_confidential": True,
+            }
+        )
+        self.assertTrue(conf.is_confidential)
+        conf.write({"allow_public_spa": True})
+        self.assertFalse(conf.is_confidential)
+
     def test_post_logout_uri_exact_match(self):
         client = self.env["auth_oidc.client"].create(
             {

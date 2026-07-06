@@ -59,10 +59,22 @@ class OAuthClient(models.Model):
         ("client_id_unique", "unique(client_id)", "Client ID must be unique."),
     ]
 
+    @api.onchange("allow_public_spa")
+    def _onchange_allow_public_spa(self):
+        # A public SPA is by definition non-confidential; clear the flag in the
+        # form so enabling SPA can't leave a stale is_confidential=True that the
+        # _check_confidential_secret constraint would then reject on save.
+        if self.allow_public_spa:
+            self.is_confidential = False
+
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
             allow_public_spa = vals.get("allow_public_spa", False)
+            if allow_public_spa:
+                # Enforce the invariant for programmatic paths (import, API)
+                # that don't run onchange.
+                vals["is_confidential"] = False
             if not allow_public_spa and vals.get("is_confidential", True) and not vals.get("client_secret"):
                 # Auto-generated secrets are stored hashed and therefore not
                 # retrievable; use "Generate Secret" to obtain a usable value.
@@ -70,6 +82,8 @@ class OAuthClient(models.Model):
         return super().create(vals_list)
 
     def write(self, vals):
+        if vals.get("allow_public_spa"):
+            vals.setdefault("is_confidential", False)
         res = super().write(vals)
         for client in self:
             if not client.allow_public_spa and client.is_confidential and not client.client_secret:
