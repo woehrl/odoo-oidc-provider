@@ -154,29 +154,6 @@ class OAuthClient(models.Model):
             },
         }
 
-    def action_show_secret(self):
-        self.ensure_one()
-        if not self.client_secret:
-            message = _("No secret set")
-        elif self.client_secret.startswith(SECRET_HASH_PREFIX):
-            message = _(
-                "The secret is stored hashed and cannot be displayed. "
-                "Use 'Generate Secret' to obtain a new one."
-            )
-        else:
-            # Legacy plaintext secret from before the hashing change.
-            message = self.client_secret
-        return {
-            "type": "ir.actions.client",
-            "tag": "display_notification",
-            "params": {
-                "title": _("Client secret"),
-                "message": message,
-                "sticky": False,
-                "type": "success",
-            },
-        }
-
     def action_revoke_authorizations(self):
         """Remove all tokens, auth codes, and consents for this client."""
         token_model = self.env["auth_oidc.token"].sudo()

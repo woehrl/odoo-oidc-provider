@@ -145,13 +145,6 @@
                                 invisible="not id">
                             <div class="o_stat_text">Revoke All Sessions</div>
                         </button>
-                        <button name="action_show_secret"
-                                type="object"
-                                class="oe_stat_button"
-                                icon="fa-eye"
-                                invisible="not id or not is_confidential or allow_public_spa">
-                            <div class="o_stat_text">Show Secret</div>
-                        </button>
                     </div>
 
                     <div class="oe_title">
