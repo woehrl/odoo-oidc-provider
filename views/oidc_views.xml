@@ -187,9 +187,9 @@
                                     Save the record first — a secret will be auto-generated. You can then view or regenerate it.
                                 </div>
                                 <field name="client_secret" password="True" groups="base.group_system"
-                                       required="is_confidential and not allow_public_spa"
+                                       readonly="1"
                                        invisible="not is_confidential or allow_public_spa"
-                                       help="The client secret used to authenticate this client on the token, introspect, and revoke endpoints. Only visible to users with System access. Sent via HTTP Basic auth or as a POST parameter."/>
+                                       help="Auto-generated on save and stored hashed; the raw value is shown once by 'Generate New Secret'. Used to authenticate this client on the token, introspect, and revoke endpoints. Only visible to users with System access."/>
                                 <button name="action_generate_secret" type="object"
                                         string="Generate New Secret" class="btn-secondary"
                                         groups="base.group_system"
