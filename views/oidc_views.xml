@@ -241,6 +241,25 @@
         </field>
     </record>
 
+    <record id="view_auth_oidc_secret_reveal_form" model="ir.ui.view">
+        <field name="name">auth.oidc.secret.reveal.form</field>
+        <field name="model">auth_oidc.secret_reveal</field>
+        <field name="arch" type="xml">
+            <form string="New Client Secret">
+                <div class="alert alert-warning" role="alert">
+                    <i class="fa fa-exclamation-triangle me-1"/>
+                    Copy this secret now. It is stored hashed and <strong>cannot be shown again</strong>.
+                </div>
+                <group>
+                    <field name="secret" widget="CopyClipboardChar" nolabel="1"/>
+                </group>
+                <footer>
+                    <button string="Done" class="btn-primary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
     <!-- ═══════════════════════════════════════════════════════════
          SIGNING KEYS
     ═══════════════════════════════════════════════════════════ -->

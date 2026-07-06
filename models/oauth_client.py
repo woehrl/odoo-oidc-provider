@@ -141,17 +141,18 @@ class OAuthClient(models.Model):
         self.ensure_one()
         raw_secret = secrets.token_urlsafe(32)
         self.client_secret = _hash_secret(raw_secret)
+        # Show the raw value once in a dialog with a copy-to-clipboard field;
+        # it is stored hashed and cannot be retrieved afterwards.
+        wizard = self.env["auth_oidc.secret_reveal"].create(
+            {"client_id": self.id, "secret": raw_secret}
+        )
         return {
-            "type": "ir.actions.client",
-            "tag": "display_notification",
-            "params": {
-                "title": _("New client secret generated"),
-                "message": _(
-                    "Copy it now — it is stored hashed and cannot be shown again: %s"
-                ) % raw_secret,
-                "sticky": True,
-                "type": "warning",
-            },
+            "type": "ir.actions.act_window",
+            "name": _("New Client Secret"),
+            "res_model": "auth_oidc.secret_reveal",
+            "res_id": wizard.id,
+            "view_mode": "form",
+            "target": "new",
         }
 
     def action_revoke_authorizations(self):
@@ -185,3 +186,11 @@ class OAuthClient(models.Model):
                 }
             )
         return True
+
+
+class OAuthSecretReveal(models.TransientModel):
+    _name = "auth_oidc.secret_reveal"
+    _description = "One-time display of a generated client secret"
+
+    client_id = fields.Many2one("auth_oidc.client", readonly=True)
+    secret = fields.Char(readonly=True)
