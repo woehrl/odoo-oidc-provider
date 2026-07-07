@@ -23,32 +23,42 @@ class OAuthRateLimit(models.Model):
         """Increment bucket and return (allowed, retry_after_seconds)."""
         now = fields.Datetime.now()
         window_open = now - timedelta(seconds=window_seconds)
-        bucket = self.search(
-            [
-                ("key", "=", key),
-                ("window_start", ">=", fields.Datetime.to_string(window_open)),
-            ],
-            limit=1,
-        )
+
+        # Reuse a single bucket per key. Searching by key alone (not by window)
+        # means an aged-out bucket is reset in place instead of orphaning a row and
+        # inserting a fresh (key, window_start) pair. That avoids both the
+        # unique(key, window_start) violation that surfaced as "Bad Request: Rate
+        # limit window already exists." (e.g. an authorize page left open for a long
+        # time, then submitted alongside a concurrent request) and unbounded row growth.
+        bucket = self.search([("key", "=", key)], order="window_start desc", limit=1)
+
         if not bucket:
             try:
                 with self.env.cr.savepoint():
-                    self.create({"key": key, "window_start": now, "count": 1})
+                    bucket = self.create({"key": key, "window_start": now, "count": 1})
+                    # Force the INSERT to run inside the savepoint so a unique-constraint
+                    # violation is raised (and caught) HERE, not later at request flush
+                    # where Odoo would turn it into a user-facing error page.
+                    self.env.flush_all()
                 return True, 0
             except IntegrityError:
-                # Concurrent request created the same bucket; fall through
-                # and count this hit against it.
+                # A concurrent request created the bucket first; re-read and count
+                # this hit against it.
                 bucket = self.search([("key", "=", key)], order="window_start desc", limit=1)
                 if not bucket:
                     return True, 0
 
-        # Reset bucket when outside window
+        # Window elapsed -> reset in place (atomic, same row: no unique collision).
         if fields.Datetime.to_datetime(bucket.window_start) < window_open:
-            bucket.write({"window_start": now, "count": 1})
+            self.env.cr.execute(
+                "UPDATE auth_oidc_rate_limit SET window_start = %s, count = 1 WHERE id = %s",
+                [fields.Datetime.to_string(now), bucket.id],
+            )
+            bucket.invalidate_recordset(["window_start", "count"])
             return True, 0
 
-        # Increment atomically in SQL so concurrent requests cannot both
-        # read the same count and race past the limit.
+        # Within the window -> increment atomically in SQL so concurrent requests
+        # cannot both read the same count and race past the limit.
         self.env.cr.execute(
             "UPDATE auth_oidc_rate_limit SET count = count + 1 WHERE id = %s RETURNING count",
             [bucket.id],
@@ -61,3 +71,10 @@ class OAuthRateLimit(models.Model):
             ).total_seconds()
             return False, max(1, int(retry_after))
         return True, 0
+
+    @api.autovacuum
+    def _gc_rate_limit_buckets(self):
+        """Housekeeping: drop buckets whose window ended long ago (any leftover rows
+        from older records or transient create races)."""
+        cutoff = fields.Datetime.now() - timedelta(days=1)
+        self.search([("window_start", "<", fields.Datetime.to_string(cutoff))]).unlink()
