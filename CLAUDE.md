@@ -93,6 +93,7 @@ Fields: `key` (endpoint:ip[:client_id]), `window_start`, `count`. `register_hit(
 
 ### `res.config.settings` Extension
 System parameters set via `ir.config_parameter`:
+- `odoo_oidc.issuer` (stable https issuer URL; falls back to `web.base.url` when empty)
 - `odoo_oidc.require_https` (default True)
 - `odoo_oidc.pkce_require_s256` (default True)
 - `odoo_oidc.allow_all_scopes_when_unset` (default False)
@@ -164,4 +165,4 @@ Query `auth_oidc.event` (Security → Events in admin UI) — all operations are
 
 ## Error Handling Pattern
 
-RFC-compliant error codes returned as JSON: `invalid_request`, `invalid_client`, `invalid_grant`, `invalid_scope`, `unsupported_grant_type`, `access_denied`. Errors after a valid redirect URI is established are returned as redirects per OAuth2 spec (RFC 6749 §4.1.2.1). The issuer (`iss`) always comes from `web.base.url`, never the Host header.
+RFC-compliant error codes returned as JSON: `invalid_request`, `invalid_client`, `invalid_grant`, `invalid_scope`, `unsupported_grant_type`, `access_denied`. Errors after a valid redirect URI is established are returned as redirects per OAuth2 spec (RFC 6749 §4.1.2.1). The issuer (`iss`) always comes from `odoo_oidc.issuer` (fallback `web.base.url`), never the Host header. Discovery and ID-token issuance refuse to run (HTTP 500 `server_error`) if the issuer is not an https URL while `odoo_oidc.require_https` is on — see `issuer_problem()` in `models/settings.py`.

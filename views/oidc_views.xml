@@ -388,6 +388,17 @@
         <field name="arch" type="xml">
             <xpath expr="//block[@name='integration']" position="after">
                 <block title="OIDC Provider" name="oidc_provider_settings">
+                    <setting id="oidc_issuer" string="Issuer URL">
+                        <field name="issuer" placeholder="https://odoo.example.com"/>
+                        <div class="text-muted">
+                            Stable <code>https</code> URL published as <code>issuer</code> in
+                            <code>/.well-known/openid-configuration</code> and as <code>iss</code>
+                            in every ID token. All endpoint URLs are derived from it.
+                            Leave empty to fall back to <code>web.base.url</code> — Odoo rewrites
+                            that parameter on admin login unless <code>web.base.url.freeze</code>
+                            is set, which silently breaks every relying party.
+                        </div>
+                    </setting>
                     <setting id="oidc_require_https" string="Require HTTPS">
                         <field name="require_https"/>
                         <div class="text-muted">

@@ -1,8 +1,12 @@
 import base64
 import hashlib
+import json
 from urllib.parse import parse_qs, urlparse
 
+from odoo.exceptions import ValidationError
 from odoo.tests import HttpCase, TransactionCase, tagged
+
+from ..models.settings import issuer_problem
 
 # RFC 7636 requires 43-128 chars from the unreserved set.
 VALID_VERIFIER = "a-valid_verifier.with~43-chars-minimum-okay"
@@ -201,6 +205,39 @@ class TestClientSecret(TransactionCase):
 
 
 @tagged("post_install", "-at_install")
+class TestIssuerConfig(TransactionCase):
+    """OIDC Discovery 1.0 §3 / Core 1.0 §2: the issuer must be a stable https URL."""
+
+    def test_https_issuer_is_valid(self):
+        self.assertIsNone(issuer_problem("https://idp.test"))
+        self.assertIsNone(issuer_problem("https://idp.test/odoo"))
+
+    def test_http_issuer_rejected_when_https_required(self):
+        self.assertIsNotNone(issuer_problem("http://idp.test", require_https=True))
+        self.assertIsNone(issuer_problem("http://idp.test", require_https=False))
+
+    def test_issuer_must_be_absolute_without_query_or_fragment(self):
+        self.assertIsNotNone(issuer_problem("idp.test"))
+        self.assertIsNotNone(issuer_problem(""))
+        self.assertIsNotNone(issuer_problem("https://idp.test/?x=1"))
+        self.assertIsNotNone(issuer_problem("https://idp.test/#frag"))
+
+    def test_settings_normalise_trailing_slash(self):
+        settings = self.env["res.config.settings"].create(
+            {"issuer": "https://idp.test/", "require_https": True}
+        )
+        settings.set_values()
+        param = self.env["ir.config_parameter"].sudo().get_param("odoo_oidc.issuer")
+        self.assertEqual(param, "https://idp.test")
+
+    def test_settings_reject_http_issuer_when_https_required(self):
+        settings = self.env["res.config.settings"].create(
+            {"issuer": "http://idp.test", "require_https": True}
+        )
+        with self.assertRaises(ValidationError):
+            settings.set_values()
+
+
 class TestOidcHttp(HttpCase):
     @classmethod
     def setUpClass(cls):
@@ -372,3 +409,52 @@ class TestOidcHttp(HttpCase):
             allow_redirects=False,
         )
         self.assertFalse(response.headers.get("Access-Control-Allow-Origin"))
+
+    def _discovery(self):
+        response = self.url_open("/.well-known/openid-configuration")
+        self.assertEqual(response.status_code, 200)
+        return response.json()
+
+    def test_discovery_uses_configured_issuer_consistently(self):
+        # Discovery §4.3: published issuer must equal what clients configured, and
+        # every advertised endpoint must live under it — regardless of web.base.url.
+        icp = self.env["ir.config_parameter"].sudo()
+        icp.set_param("odoo_oidc.issuer", "https://idp.test")
+        icp.set_param("web.base.url", "http://rewritten-by-admin-login.test")
+        doc = self._discovery()
+        self.assertEqual(doc["issuer"], "https://idp.test")
+        for key in (
+            "authorization_endpoint", "token_endpoint", "jwks_uri", "userinfo_endpoint",
+            "end_session_endpoint", "revocation_endpoint", "introspection_endpoint",
+        ):
+            self.assertTrue(doc[key].startswith("https://idp.test/"), f"{key} = {doc[key]}")
+
+    def test_discovery_falls_back_to_web_base_url(self):
+        icp = self.env["ir.config_parameter"].sudo()
+        icp.set_param("odoo_oidc.issuer", False)
+        icp.set_param("web.base.url", "https://fallback.test")
+        doc = self._discovery()
+        self.assertEqual(doc["issuer"], "https://fallback.test")
+        self.assertEqual(doc["token_endpoint"], "https://fallback.test/oauth/token")
+
+    def test_id_token_iss_matches_configured_issuer(self):
+        # OIDC Core §2 + Discovery §4.3: the iss claim must be the same value the
+        # discovery document publishes, so relying parties can validate it.
+        self.env["ir.config_parameter"].sudo().set_param("odoo_oidc.issuer", "https://idp.test")
+        self.authenticate("admin", "admin")
+        code = self._authorize_and_get_code()["code"][0]
+        payload = self.url_open(
+            "/oauth/token",
+            data={
+                "grant_type": "authorization_code",
+                "code": code,
+                "redirect_uri": "https://app.local/callback",
+                "code_verifier": VALID_VERIFIER,
+                "client_id": "http-client",
+            },
+            allow_redirects=False,
+        ).json()
+        claims_b64 = payload["id_token"].split(".")[1]
+        claims = json.loads(base64.urlsafe_b64decode(claims_b64 + "=" * (-len(claims_b64) % 4)))
+        self.assertEqual(claims["iss"], "https://idp.test")
+        self.assertEqual(claims["iss"], self._discovery()["issuer"])

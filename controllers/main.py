@@ -8,6 +8,8 @@ from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 from odoo import http, fields
 from odoo.http import request
 
+from ..models.settings import issuer_problem
+
 _logger = logging.getLogger(__name__)
 
 RATE_LIMIT_DEFAULTS = {
@@ -26,13 +28,35 @@ def _json_response(payload, status=200, headers=None):
     return http.Response(json.dumps(payload), status=status, headers=base_headers)
 
 
-def _base_url():
-    """Canonical issuer URL. Uses web.base.url so the issuer in discovery and
-    signed ID tokens cannot be influenced by the request's Host header."""
-    base = request.env["ir.config_parameter"].sudo().get_param("web.base.url")
+def _issuer_url():
+    """Canonical issuer URL (OIDC Discovery 1.0 §3, Core 1.0 §2).
+
+    Precedence:
+      1. ``odoo_oidc.issuer`` — dedicated, stable parameter (recommended).
+      2. ``web.base.url`` — legacy fallback. Odoo rewrites this parameter whenever an
+         admin logs in through a different URL (unless ``web.base.url.freeze`` is set),
+         so it can silently flip to http:// and break every relying party.
+      3. The request's host URL — last resort for unconfigured dev instances.
+
+    The result is never influenced by the Host header once a parameter is set.
+    """
+    icp = request.env["ir.config_parameter"].sudo()
+    base = icp.get_param("odoo_oidc.issuer") or icp.get_param("web.base.url")
     if base:
-        return base.rstrip("/")
+        return base.strip().rstrip("/")
     return request.httprequest.host_url.rstrip("/")
+
+
+def _issuer_error():
+    """Return an error description if the configured issuer would yield a
+    spec-violating discovery document or ID token, else None. Logged at error
+    level so operators see the misconfiguration, not just the relying parties."""
+    issuer = _issuer_url()
+    problem = issuer_problem(issuer, require_https=_bool_param("odoo_oidc.require_https", True))
+    if problem:
+        _logger.error("OIDC issuer misconfigured (%r): %s", issuer, problem)
+        return f"Issuer misconfigured: {problem}"
+    return None
 
 
 def _utc_epoch(naive_utc_dt):
@@ -232,7 +256,7 @@ def _verify_id_token_hint(hint):
                 hint,
                 key=private_key.public_key(),
                 algorithms=["RS256"],
-                issuer=_base_url(),
+                issuer=_issuer_url(),
                 options={"verify_exp": False, "verify_aud": False},
             )
         except Exception:  # noqa: BLE001 - try remaining keys
@@ -273,7 +297,17 @@ class OidcController(http.Controller):
         https_guard = _require_https()
         if https_guard:
             return https_guard
-        base_url = _base_url()
+        # Refuse to publish a document that advertises non-TLS endpoints or an issuer
+        # that violates Discovery §3 — clients would either reject it or, worse, post
+        # authorization codes to a plaintext token endpoint.
+        issuer_error = _issuer_error()
+        if issuer_error:
+            return _json_response(
+                {"error": "server_error", "error_description": issuer_error},
+                status=500,
+                headers=_cors_public_headers(),
+            )
+        base_url = _issuer_url()
         scope_model = request.env["auth_oidc.scope"].sudo()
         scopes = scope_model.search([("active", "=", True)]).mapped("name")
         # Reflect actual PKCE methods: if S256-only is enforced, drop plain.
@@ -547,12 +581,15 @@ class OidcController(http.Controller):
             return None, "No active signing key"
         if not key.private_key_pem:
             return None, "Signing key missing secret material"
+        issuer_error = _issuer_error()
+        if issuer_error:
+            return None, issuer_error
         now_epoch = _utc_epoch(datetime.utcnow())
         # auth_time is when the user actually authenticated (OIDC Core §2),
         # not when this token was minted; login_date is Odoo's record of that.
         login_date = user.login_date
         claims = {
-            "iss": _base_url(),
+            "iss": _issuer_url(),
             "sub": str(user.id),
             "aud": [client.client_id],
             "iat": now_epoch,

@@ -63,8 +63,25 @@ supported. Rotate keys regularly; the JWKS endpoint automatically skips inactive
 expired keys, allowing zero-downtime rotation when a new key is added before the old
 one is expired.
 
-The issuer (`iss`) in discovery and ID tokens is taken from the `web.base.url`
-system parameter, never from the request's Host header.
+## Issuer
+
+The issuer (`iss`) in discovery and ID tokens is taken from the `odoo_oidc.issuer`
+system parameter (Settings → OIDC Provider → Issuer URL), never from the request's
+Host header. When it is empty the module falls back to `web.base.url`.
+
+Prefer the dedicated parameter: OIDC Discovery 1.0 §4.3 requires the published
+`issuer` to equal the URL clients used to fetch the discovery document, and every
+relying party has it hard-coded. `web.base.url`, by contrast, is rewritten by Odoo
+whenever an administrator logs in through a different URL (e.g. plain http or a
+staging hostname) unless `web.base.url.freeze` is set — a single such login used to
+flip the advertised endpoints to `http://`, which browsers block as mixed content and
+which would send authorization codes over plaintext.
+
+Both the discovery endpoint and ID-token issuance now refuse to operate (HTTP 500
+`server_error`, plus an error-level log line) if the effective issuer is not an
+https URL without query/fragment (Discovery §3, Core §2). Plain http is tolerated
+only when `odoo_oidc.require_https` is off. The settings form rejects invalid
+values at save time.
 
 ## Tokens & Authorization Codes
 

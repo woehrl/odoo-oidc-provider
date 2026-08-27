@@ -3,6 +3,7 @@
 This README has moved to `README.rst` for proper rendering in Odoo. Please see that file for full documentation.
 
 ## Production checklist
+- Set a stable issuer (`odoo_oidc.issuer`, e.g. `https://odoo.example.com`) instead of relying on the volatile `web.base.url`.
 - Enforce HTTPS (`odoo_oidc.require_https` True) and enable HSTS on the reverse proxy.
 - Configure RSA keys with a valid public JWK; define a rotation plan and restrict private keys to System users.
 - Keep PKCE S256 required (`odoo_oidc.pkce_require_s256` True); public clients must not send secrets.

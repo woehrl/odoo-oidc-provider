@@ -26,6 +26,10 @@ Configuration (post-install)
    - Set client_id/client_secret (public clients: set is_confidential to False and leave the secret blank).
    - Enter redirect URIs exactly (one per line) and define allowed scopes.
 4. Security/hardening (system parameters):
+   - odoo_oidc.issuer: stable https issuer URL (Settings > OIDC Provider > Issuer URL). Published as
+     ``issuer`` in discovery and ``iss`` in ID tokens; all endpoint URLs derive from it. Falls back to
+     web.base.url when empty — not recommended, Odoo rewrites web.base.url on admin login unless
+     web.base.url.freeze is set.
    - odoo_oidc.require_https (default True): enforce HTTPS for all endpoints.
    - odoo_oidc.pkce_require_s256 (default True): forbid PKCE plain.
    - odoo_oidc.rate_limit.<bucket>.limit / .window: per-endpoint abuse protection (authorize/token/userinfo/introspect/revoke).
