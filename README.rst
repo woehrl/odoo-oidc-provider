@@ -19,13 +19,18 @@ odoo.sh notes
 Configuration (post-install)
 ----------------------------
 1. Create a signing key at Settings > Technical > Auth OIDC Keys:
+
    - Use the built-in buttons to generate RSA (recommended) or HS keys; the public JWK is filled automatically.
    - Distribute only the public key/JWK; keep the private key in Odoo (System group).
+
 2. Review/extend scopes under Auth OIDC Scopes (openid/profile/email are seeded).
 3. Register a client under Auth OIDC Clients:
+
    - Set client_id/client_secret (public clients: set is_confidential to False and leave the secret blank).
    - Enter redirect URIs exactly (one per line) and define allowed scopes.
+
 4. Security/hardening (system parameters):
+
    - odoo_oidc.issuer: stable https issuer URL (Settings > OIDC Provider > Issuer URL). Published as
      ``issuer`` in discovery and ``iss`` in ID tokens; all endpoint URLs derive from it. Falls back to
      web.base.url when empty — not recommended, Odoo rewrites web.base.url on admin login unless
@@ -34,6 +39,7 @@ Configuration (post-install)
    - odoo_oidc.pkce_require_s256 (default True): forbid PKCE plain.
    - odoo_oidc.rate_limit.<bucket>.limit / .window: per-endpoint abuse protection (authorize/token/userinfo/introspect/revoke).
    - odoo_oidc.allow_all_scopes_when_unset (default False): keep default-deny when a client has no allowed scopes set.
+
 5. Cron jobs: expired tokens and codes are cleaned up every 30 minutes (see data/cron.xml).
 
 Scopes and Claims
@@ -87,6 +93,7 @@ Example: React/TypeScript app
 Assume the app runs at https://example-app.test and uses the redirect URI https://example-app.test/auth/callback.
 
 1. Create an OIDC client in Odoo:
+
    - client_id: example-web
    - client_secret: leave empty for a public client with PKCE
    - Redirect URI: https://example-app.test/auth/callback
@@ -123,6 +130,7 @@ Assume the app runs at https://example-app.test and uses the redirect URI https:
       const userinfo = await client.userinfo(tokenSet.access_token as string);
 
 3. If React app runs without openid-client:
+
    - Redirect the user to /oauth/authorize?...&code_challenge=<S256>&code_challenge_method=S256.
    - In the callback, POST the code to /oauth/token with grant_type=authorization_code, code_verifier, redirect_uri.
    - Use the access token for /oauth/userinfo.

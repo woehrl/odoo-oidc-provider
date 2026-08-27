@@ -8,7 +8,7 @@
     "category": "Authentication",
     "depends": ["base", "web", "auth_signup"],
     "external_dependencies": {
-        "python": ["jwt", "cryptography"],
+        "python": ["PyJWT", "cryptography"],
     },
     "data": [
         "security/ir.model.access.csv",

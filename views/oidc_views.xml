@@ -45,7 +45,7 @@
                     </div>
 
                     <div class="alert alert-info mt8 mb8" role="alert">
-                        <i class="fa fa-info-circle me-1"/>
+                        <i class="fa fa-info-circle me-1" title="Info"/>
                         <strong>Discovery:</strong>
                         <code>/.well-known/openid-configuration</code>
                         &#160;&#160;
@@ -190,7 +190,7 @@
                                         help="Generates a new cryptographically random secret and displays it once. The old secret is immediately invalidated."/>
                             </group>
                             <div class="alert alert-info" role="alert" invisible="is_confidential and not allow_public_spa">
-                                <i class="fa fa-info-circle me-1"/>
+                                <i class="fa fa-info-circle me-1" title="Info"/>
                                 <strong>Public client</strong> — no client secret is used.
                                 PKCE (<code>code_challenge</code> / <code>code_verifier</code>) is required on every authorization request.
                                 S256 is enforced when <em>PKCE S256 only</em> is enabled in Settings.
@@ -309,7 +309,7 @@
                     <notebook>
                         <page string="Key Material" name="key_material">
                             <div class="alert alert-info mb16" role="alert">
-                                <i class="fa fa-info-circle me-1"/>
+                                <i class="fa fa-info-circle me-1" title="Info"/>
                                 <strong>RSA keypairs can be generated directly here.</strong>
                                 The <strong>Public JWK</strong> is auto-derived from the private key and exposed at
                                 <code>/.well-known/jwks.json</code> — the private key never leaves Odoo.
